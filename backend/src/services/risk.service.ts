@@ -258,8 +258,16 @@ export class RiskService {
     // Aggregate real inspection data
     const stats = await this.aggregateInspectionStats(instrument._id as mongoose.Types.ObjectId);
 
+    // Fetch latest genuine regional correlation assessment if available
+    let regionalScore: number | null = null;
+    const { RegionalCorrelationAssessment } = await import('../models/regional-correlation.model');
+    const latestCorr = await RegionalCorrelationAssessment.findOne({ instrument: instrument._id }).sort({ assessedAt: -1 });
+    if (latestCorr) {
+      regionalScore = latestCorr.highestSimilarityScore;
+    }
+
     // Calculate scores
-    const riskResult = calculateRiskScore(instrument as any, stats, config);
+    const riskResult = calculateRiskScore(instrument as any, stats, config, regionalScore);
     const trustResult = calculateTrustScore(instrument as any, stats);
 
     // Generate assessment ID

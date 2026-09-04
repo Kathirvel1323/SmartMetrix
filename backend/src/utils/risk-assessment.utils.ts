@@ -112,7 +112,8 @@ const normalizeLinear = (raw: number, rawMin: number, rawMax: number): number =>
 export const calculateRiskScore = (
   instrument: IInstrument,
   stats: InspectionStats,
-  config: IRiskConfiguration
+  config: IRiskConfiguration,
+  regionalCorrelationScore?: number | null
 ): RiskScoreResult => {
   const strategy: MissingDataStrategy = config.missingDataStrategy;
   const weights = config.weights;
@@ -177,10 +178,19 @@ export const calculateRiskScore = (
     normalizedValue: certNormalized
   });
 
-  // 5–9: complaints, repairs, calibrationIssues, regionalRisk, age
+  // 5. regionalRisk — available if genuine regional correlation score is provided
+  const hasRegional = typeof regionalCorrelationScore === 'number' && isFinite(regionalCorrelationScore);
+  factorRaws.push({
+    key: 'regionalRisk',
+    available: hasRegional,
+    rawValue: hasRegional ? regionalCorrelationScore : null,
+    normalizedValue: hasRegional ? clamp(regionalCorrelationScore! / 100, 0, 1) : null
+  });
+
+  // 6–9: complaints, repairs, calibrationIssues, age
   // These factors are NOT available — the system has no data models for them.
   // They are marked explicitly unavailable and never fabricated.
-  for (const key of ['complaints', 'repairs', 'calibrationIssues', 'regionalRisk', 'age'] as FactorKey[]) {
+  for (const key of ['complaints', 'repairs', 'calibrationIssues', 'age'] as FactorKey[]) {
     factorRaws.push({ key, available: false, rawValue: null, normalizedValue: null });
   }
 

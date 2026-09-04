@@ -8,6 +8,9 @@ import verificationRoutes from './routes/verification.routes';
 import toleranceRoutes from './routes/tolerance.routes';
 import inspectionRoutes from './routes/inspection.routes';
 import riskRoutes from './routes/risk.routes';
+import anomalyRoutes from './routes/anomaly.routes';
+import regionalRoutes from './routes/regional.routes';
+import phase7Routes from './routes/phase7.routes';
 import { notFoundHandler, errorHandler } from './middleware/error.middleware';
 
 const app: Application = express();
@@ -34,6 +37,9 @@ app.use('/api/verifications', verificationRoutes);
 app.use('/api/tolerance-rules', toleranceRoutes);
 app.use('/api/inspections', inspectionRoutes);
 app.use('/api/risk', riskRoutes);
+app.use('/api/anomaly', anomalyRoutes);
+app.use('/api/regional', regionalRoutes);
+app.use('/api/phase7', phase7Routes);
 
 // Error Handling Middleware
 app.use(notFoundHandler);
