@@ -13,3 +13,7 @@ export * from './photo-assist.model';
 export * from './predictive-assessment.model';
 export * from './verification-rule.model';
 export * from './planning-twin.model';
+export * from './certificate-policy.model';
+export * from './certificate.model';
+export * from './complaint.model';
+export * from './improvement-notice.model';

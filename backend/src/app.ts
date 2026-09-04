@@ -11,6 +11,10 @@ import riskRoutes from './routes/risk.routes';
 import anomalyRoutes from './routes/anomaly.routes';
 import regionalRoutes from './routes/regional.routes';
 import phase7Routes from './routes/phase7.routes';
+import certificateRoutes from './routes/certificate.routes';
+import publicVerifyRoutes from './routes/public-verify.routes';
+import complaintRoutes from './routes/complaint.routes';
+import improvementNoticeRoutes from './routes/improvement-notice.routes';
 import { notFoundHandler, errorHandler } from './middleware/error.middleware';
 
 const app: Application = express();
@@ -40,6 +44,10 @@ app.use('/api/risk', riskRoutes);
 app.use('/api/anomaly', anomalyRoutes);
 app.use('/api/regional', regionalRoutes);
 app.use('/api/phase7', phase7Routes);
+app.use('/api/certificates', certificateRoutes);
+app.use('/api/public', publicVerifyRoutes);
+app.use('/api/complaints', complaintRoutes);
+app.use('/api/improvement-notices', improvementNoticeRoutes);
 
 // Error Handling Middleware
 app.use(notFoundHandler);
