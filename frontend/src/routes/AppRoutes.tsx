@@ -60,6 +60,7 @@ export const AppRoutes: React.FC = () => {
   return (
     <Routes>
       {/* Unauthenticated Public Routes */}
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/verify/:publicVerificationId" element={<PublicVerifyPage />} />

@@ -31,11 +31,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const me = await authService.getMe();
       setUser(me);
       localStorage.setItem('smartmetrix_user', JSON.stringify(me));
-    } catch {
-      setUser(null);
-      setToken(null);
-      localStorage.removeItem('smartmetrix_token');
-      localStorage.removeItem('smartmetrix_user');
+    } catch (err: any) {
+      if (err.response?.status === 401) {
+        setUser(null);
+        setToken(null);
+        localStorage.removeItem('smartmetrix_token');
+        localStorage.removeItem('smartmetrix_user');
+      }
     } finally {
       setIsLoading(false);
     }
