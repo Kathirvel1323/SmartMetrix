@@ -27,6 +27,8 @@ import { SearchPage } from '../pages/search/SearchPage';
 import { AuditPage } from '../pages/audit/AuditPage';
 import { DecisionSupportPage } from '../pages/decision-support/DecisionSupportPage';
 
+import { NotFoundPage } from '../pages/NotFoundPage';
+import { ForbiddenPage } from '../pages/ForbiddenPage';
 import { LoadingState } from '../components/ui/LoadingState';
 
 const ProtectedRoute: React.FC<{
@@ -48,7 +50,7 @@ const ProtectedRoute: React.FC<{
   }
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/403" replace />;
   }
 
   return <>{children}</>;
@@ -64,6 +66,7 @@ export const AppRoutes: React.FC = () => {
       <Route path="/public/complaint" element={<PublicComplaintPage />} />
       <Route path="/public/complaints/new" element={<PublicComplaintPage />} />
       <Route path="/public/complaints/track" element={<TrackComplaintPage />} />
+      <Route path="/403" element={<ForbiddenPage />} />
 
       {/* Protected App Layout Routes */}
       <Route
@@ -135,8 +138,8 @@ export const AppRoutes: React.FC = () => {
         <Route path="/settings" element={<SettingsPage />} />
       </Route>
 
-      {/* Default Fallback */}
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      {/* 404 Fallback */}
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 };

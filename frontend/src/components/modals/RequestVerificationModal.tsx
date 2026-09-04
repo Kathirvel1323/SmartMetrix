@@ -27,16 +27,6 @@ export const RequestVerificationModal: React.FC<RequestVerificationModalProps> =
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
-  useEffect(() => {
-    if (isOpen) {
-      if (preselectedInstrument) {
-        setSelectedInstrumentId(preselectedInstrument._id || preselectedInstrument.instrumentId);
-      } else {
-        loadInstruments();
-      }
-    }
-  }, [isOpen, preselectedInstrument]);
-
   const loadInstruments = async () => {
     try {
       const res = await instrumentService.getInstruments({ limit: 50 });
@@ -48,6 +38,16 @@ export const RequestVerificationModal: React.FC<RequestVerificationModalProps> =
       setInstruments([]);
     }
   };
+
+  useEffect(() => {
+    if (isOpen) {
+      if (preselectedInstrument) {
+        setSelectedInstrumentId(preselectedInstrument._id || preselectedInstrument.instrumentId);
+      } else {
+        loadInstruments();
+      }
+    }
+  }, [isOpen, preselectedInstrument]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

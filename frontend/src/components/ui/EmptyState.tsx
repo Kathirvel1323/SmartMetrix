@@ -5,17 +5,19 @@ interface StateProps {
   title?: string;
   description?: string;
   action?: React.ReactNode;
+  icon?: React.ReactNode;
 }
 
 export const EmptyState: React.FC<StateProps> = ({
   title = 'No Data Found',
   description = 'No records match the requested filter criteria.',
   action,
+  icon,
 }) => {
   return (
     <div className="flex flex-col items-center justify-center p-10 text-center rounded-xl bg-slate-900/40 border border-dashed border-slate-700/80 my-4">
       <div className="p-4 bg-slate-800/80 rounded-full border border-slate-700 text-teal-400 mb-3 shadow-inner">
-        <FileSpreadsheet className="w-8 h-8 opacity-80" />
+        {icon || <FileSpreadsheet className="w-8 h-8 opacity-80" />}
       </div>
       <h4 className="text-base font-bold text-slate-200">{title}</h4>
       <p className="text-xs text-slate-400 max-w-sm mt-1 mb-4">{description}</p>

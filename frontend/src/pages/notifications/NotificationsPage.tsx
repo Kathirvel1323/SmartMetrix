@@ -49,7 +49,7 @@ export const NotificationsPage: React.FC = () => {
       await notificationService.scanNotifications();
       setScanMessage('System enforcement scan triggered successfully!');
       fetchNotifications();
-    } catch (err: any) {
+    } catch {
       setScanMessage('Failed to trigger scan.');
     } finally {
       setIsScanning(false);

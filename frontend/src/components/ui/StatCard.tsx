@@ -9,7 +9,7 @@ interface StatCardProps {
     value: string;
     isPositive: boolean;
   };
-  color?: 'teal' | 'amber' | 'emerald' | 'sky' | 'purple';
+  color?: 'teal' | 'amber' | 'emerald' | 'sky' | 'purple' | 'red';
 }
 
 export const StatCard: React.FC<StatCardProps> = ({
@@ -26,6 +26,16 @@ export const StatCard: React.FC<StatCardProps> = ({
     emerald: 'from-emerald-500/10 to-slate-800 border-emerald-500/30 text-emerald-400',
     sky: 'from-sky-500/10 to-slate-800 border-sky-500/30 text-sky-400',
     purple: 'from-purple-500/10 to-slate-800 border-purple-500/30 text-purple-400',
+    red: 'from-red-500/10 to-slate-800 border-red-500/30 text-red-400',
+  };
+
+  const iconTextColorMap = {
+    teal: 'text-teal-400',
+    amber: 'text-amber-400',
+    emerald: 'text-emerald-400',
+    sky: 'text-sky-400',
+    purple: 'text-purple-400',
+    red: 'text-red-400',
   };
 
   return (
@@ -37,7 +47,7 @@ export const StatCard: React.FC<StatCardProps> = ({
             {value}
           </div>
         </div>
-        <div className="p-3 bg-slate-900/60 border border-slate-700/60 rounded-xl text-teal-400 group-hover:scale-110 transition-transform">
+        <div className={`p-3 bg-slate-900/60 border border-slate-700/60 rounded-xl ${iconTextColorMap[color]} group-hover:scale-110 transition-transform`}>
           {icon}
         </div>
       </div>

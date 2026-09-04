@@ -4,13 +4,15 @@ import { useAuth } from '../../context/AuthContext';
 import { Logo } from '../../components/ui/Logo';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
-import { ShieldCheck, Scale, Cpu, MapPin, KeyRound, AlertCircle } from 'lucide-react';
+import { ShieldCheck, Scale, Cpu, MapPin, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import heroImg from '../../assets/hero.png';
 
 export const LoginPage: React.FC = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -28,25 +30,25 @@ export const LoginPage: React.FC = () => {
     }
   };
 
-  const setDemoCredentials = (roleEmail: string, rolePass: string) => {
-    setEmail(roleEmail);
-    setPassword(rolePass);
-    setError('');
-  };
-
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col lg:flex-row">
       {/* Left visual showcase panel */}
-      <div className="lg:w-1/2 bg-gradient-to-br from-slate-900 via-slate-950 to-teal-950/40 p-8 lg:p-12 flex flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-800 relative overflow-hidden">
-        {/* Background ambient lighting */}
-        <div className="absolute -top-24 -left-24 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="lg:w-1/2 bg-slate-900 border-b lg:border-b-0 lg:border-r border-slate-800 flex flex-col justify-between p-8 lg:p-12 relative overflow-hidden">
+        {/* Subtle hero image overlay */}
+        <div
+          className="absolute inset-0 opacity-15 bg-cover bg-center pointer-events-none mix-blend-luminosity"
+          style={{ backgroundImage: `url(${heroImg})` }}
+        />
 
-        <div>
+        {/* Ambient glow */}
+        <div className="absolute -top-24 -left-24 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div className="relative z-10">
           <Logo className="h-10 mb-8" />
           <div className="max-w-md space-y-4">
             <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-teal-950/80 text-teal-300 border border-teal-500/30 uppercase tracking-widest">
-              SIH 2026 Legal Metrology Platform
+              Legal Metrology Standard Portal
             </span>
             <h1 className="text-3xl lg:text-4xl font-extrabold text-white tracking-tight leading-tight">
               Legal Metrology Command Center
@@ -58,29 +60,29 @@ export const LoginPage: React.FC = () => {
         </div>
 
         {/* Feature highlight grid */}
-        <div className="grid grid-cols-2 gap-4 my-8 max-w-md">
-          <div className="p-3.5 bg-slate-900/60 border border-slate-800 rounded-xl flex items-start gap-3">
+        <div className="relative z-10 grid grid-cols-2 gap-4 my-8 max-w-md">
+          <div className="p-3.5 bg-slate-950/60 border border-slate-800 rounded-xl flex items-start gap-3 backdrop-blur-sm">
             <Scale className="w-5 h-5 text-teal-400 shrink-0 mt-0.5" />
             <div>
               <h4 className="text-xs font-bold text-slate-200">Verified Instruments</h4>
               <p className="text-[11px] text-slate-400">Digital passport & lifecycle</p>
             </div>
           </div>
-          <div className="p-3.5 bg-slate-900/60 border border-slate-800 rounded-xl flex items-start gap-3">
+          <div className="p-3.5 bg-slate-950/60 border border-slate-800 rounded-xl flex items-start gap-3 backdrop-blur-sm">
             <Cpu className="w-5 h-5 text-purple-400 shrink-0 mt-0.5" />
             <div>
               <h4 className="text-xs font-bold text-slate-200">AI Decision Support</h4>
               <p className="text-[11px] text-slate-400">Isolation forest detection</p>
             </div>
           </div>
-          <div className="p-3.5 bg-slate-900/60 border border-slate-800 rounded-xl flex items-start gap-3">
+          <div className="p-3.5 bg-slate-950/60 border border-slate-800 rounded-xl flex items-start gap-3 backdrop-blur-sm">
             <ShieldCheck className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
             <div>
               <h4 className="text-xs font-bold text-slate-200">Integrity Certificates</h4>
               <p className="text-[11px] text-slate-400">HMAC-SHA256 crypto seal</p>
             </div>
           </div>
-          <div className="p-3.5 bg-slate-900/60 border border-slate-800 rounded-xl flex items-start gap-3">
+          <div className="p-3.5 bg-slate-950/60 border border-slate-800 rounded-xl flex items-start gap-3 backdrop-blur-sm">
             <MapPin className="w-5 h-5 text-sky-400 shrink-0 mt-0.5" />
             <div>
               <h4 className="text-xs font-bold text-slate-200">Regional Intelligence</h4>
@@ -89,8 +91,8 @@ export const LoginPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="text-xs text-slate-500 pt-4 border-t border-slate-800">
-          Official Prototype • Government of India Legal Metrology Standard Compliant
+        <div className="relative z-10 text-xs text-slate-500 pt-4 border-t border-slate-800">
+          Official Statutory Platform • Legal Metrology Act Compliance System
         </div>
       </div>
 
@@ -120,11 +122,21 @@ export const LoginPage: React.FC = () => {
             />
             <Input
               label="Password"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               placeholder="••••••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              rightIcon={
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-slate-400 hover:text-white transition-colors focus:outline-none"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              }
             />
 
             <Button type="submit" variant="primary" className="w-full" isLoading={isLoading}>
@@ -132,41 +144,10 @@ export const LoginPage: React.FC = () => {
             </Button>
           </form>
 
-          {/* Quick Demo Credentials Switcher */}
-          <div className="pt-4 border-t border-slate-800">
-            <div className="flex items-center gap-1.5 text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">
-              <KeyRound className="w-3.5 h-3.5 text-teal-400" />
-              <span>Quick Demo Accounts</span>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => setDemoCredentials('admin@smartmetrix.gov.in', 'Admin@123456')}
-                className="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 border border-purple-500/30 text-purple-300 rounded-lg text-xs font-semibold transition-colors"
-              >
-                ⚡ ADMIN
-              </button>
-              <button
-                type="button"
-                onClick={() => setDemoCredentials('inspector1@smartmetrix.gov.in', 'Inspector@123456')}
-                className="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 border border-teal-500/30 text-teal-300 rounded-lg text-xs font-semibold transition-colors"
-              >
-                🔍 INSPECTOR
-              </button>
-              <button
-                type="button"
-                onClick={() => setDemoCredentials('owner1@smartmetrix.com', 'Owner@123456')}
-                className="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 border border-sky-500/30 text-sky-300 rounded-lg text-xs font-semibold transition-colors"
-              >
-                🏢 OWNER
-              </button>
-            </div>
-          </div>
-
-          <div className="text-center text-xs text-slate-400">
+          <div className="text-center text-xs text-slate-400 pt-4 border-t border-slate-800">
             Establishment Owner?{' '}
             <Link to="/register" className="text-teal-400 hover:underline font-semibold">
-              Register New Owner Account
+              Register Owner Account
             </Link>
           </div>
         </div>
@@ -174,3 +155,5 @@ export const LoginPage: React.FC = () => {
     </div>
   );
 };
+
+export default LoginPage;

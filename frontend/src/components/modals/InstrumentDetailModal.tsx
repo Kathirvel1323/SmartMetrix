@@ -24,12 +24,6 @@ export const InstrumentDetailModal: React.FC<InstrumentDetailModalProps> = ({
   const [passportData, setPassportData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    if (isOpen && instrumentId) {
-      fetchDetails(instrumentId);
-    }
-  }, [isOpen, instrumentId]);
-
   const fetchDetails = async (id: string) => {
     setIsLoading(true);
     try {
@@ -46,6 +40,12 @@ export const InstrumentDetailModal: React.FC<InstrumentDetailModalProps> = ({
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (isOpen && instrumentId) {
+      fetchDetails(instrumentId);
+    }
+  }, [isOpen, instrumentId]);
 
   if (!isOpen) return null;
 

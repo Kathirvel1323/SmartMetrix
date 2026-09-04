@@ -39,6 +39,16 @@ export const AppLayout: React.FC = () => {
     navigate('/login');
   };
 
+  React.useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (isUserMenuOpen && !(e.target as HTMLElement).closest('.user-menu-container')) {
+        setIsUserMenuOpen(false);
+      }
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, [isUserMenuOpen]);
+
   const navItems = [
     { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, roles: ['ADMIN', 'INSPECTOR', 'OWNER'] },
     { label: 'Instruments', path: '/instruments', icon: Scale, roles: ['ADMIN', 'INSPECTOR', 'OWNER'] },
@@ -89,6 +99,7 @@ export const AppLayout: React.FC = () => {
         className={`fixed md:sticky top-0 z-50 h-screen w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between transition-transform duration-200 ease-in-out shrink-0 ${
           isMobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
+        aria-label="Sidebar Navigation"
       >
         <div>
           {/* Header branding */}
@@ -97,13 +108,14 @@ export const AppLayout: React.FC = () => {
             <button
               onClick={() => setIsMobileOpen(false)}
               className="md:hidden text-slate-400 hover:text-white p-1 rounded-lg"
+              aria-label="Close Sidebar"
             >
               <X className="w-6 h-6" />
             </button>
           </div>
 
           {/* Navigation Links */}
-          <nav className="p-3 space-y-1 overflow-y-auto max-h-[calc(100vh-140px)]">
+          <nav className="p-3 space-y-1 overflow-y-auto max-h-[calc(100vh-140px)]" aria-label="Main Navigation">
             {filteredNav.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path || (item.path !== '/dashboard' && location.pathname.startsWith(item.path));
@@ -150,6 +162,7 @@ export const AppLayout: React.FC = () => {
             <button
               onClick={() => setIsMobileOpen(true)}
               className="md:hidden p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800"
+              aria-label="Open navigation menu"
             >
               <Menu className="w-6 h-6" />
             </button>
@@ -167,6 +180,7 @@ export const AppLayout: React.FC = () => {
               to="/notifications"
               className="relative p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
               title="Notifications"
+              aria-label="Notifications"
             >
               <Bell className="w-5 h-5" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-teal-400 rounded-full animate-ping"></span>
@@ -185,10 +199,12 @@ export const AppLayout: React.FC = () => {
             )}
 
             {/* Profile Dropdown */}
-            <div className="relative">
+            <div className="relative user-menu-container">
               <button
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                 className="flex items-center gap-2 p-1.5 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-colors text-xs font-medium"
+                aria-expanded={isUserMenuOpen}
+                aria-label="User account menu"
               >
                 <UserIcon className="w-4 h-4 text-teal-400" />
                 <span className="hidden md:inline">{user?.name}</span>
