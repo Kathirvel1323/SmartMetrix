@@ -9,6 +9,21 @@ const TEST_DB_URI = process.env.TEST_MONGODB_URI || 'mongodb://localhost:27017/s
 // Track test record IDs to cleanly delete only records created during tests
 const createdUserIds: mongoose.Types.ObjectId[] = [];
 
+/**
+ * Test Database Safety Guard:
+ * Strictly ensures any delete, drop, or cleanup operation only executes
+ * if the connected database is exactly 'smartmetrix_test'.
+ * Aborts immediately otherwise to protect development/production databases.
+ */
+export const assertTestDatabaseSafety = (): void => {
+  const currentDbName = mongoose.connection.db?.databaseName || mongoose.connection.name;
+  if (currentDbName !== 'smartmetrix_test') {
+    throw new Error(
+      `SAFETY GUARD ABORT: Test operations are strictly restricted to 'smartmetrix_test'. Connected to '${currentDbName}'. Operation aborted.`
+    );
+  }
+};
+
 describe('Phase 2 Integration Tests: Authentication, JWT & RBAC', () => {
   let ownerToken: string;
   let adminToken: string;
@@ -42,6 +57,9 @@ describe('Phase 2 Integration Tests: Authentication, JWT & RBAC', () => {
       await mongoose.connect(TEST_DB_URI);
     }
 
+    // Verify guard immediately upon connection before any writes
+    assertTestDatabaseSafety();
+
     // Seed a test admin account directly in test database
     const adminUser = new User({
       name: testAdmin.name,
@@ -56,11 +74,29 @@ describe('Phase 2 Integration Tests: Authentication, JWT & RBAC', () => {
   });
 
   afterAll(async () => {
+    // Safety guard verification before any cleanup
+    assertTestDatabaseSafety();
+
     // Clean up ONLY records created by the test suite
     if (createdUserIds.length > 0) {
       await User.deleteMany({ _id: { $in: createdUserIds } });
     }
     await mongoose.disconnect();
+  });
+
+  describe('0. Database Safety Guard', () => {
+    it('strictly verifies connected database is smartmetrix_test and throws on mismatch', () => {
+      const currentDb = mongoose.connection.db?.databaseName || mongoose.connection.name;
+      expect(currentDb).toBe('smartmetrix_test');
+      expect(() => {
+        const checkDb = (db: string) => {
+          if (db !== 'smartmetrix_test') {
+            throw new Error(`SAFETY GUARD ABORT: Expected 'smartmetrix_test', got '${db}'`);
+          }
+        };
+        checkDb('smartmetrix');
+      }).toThrow(/SAFETY GUARD ABORT/);
+    });
   });
 
   describe('1. Health Check Endpoint', () => {

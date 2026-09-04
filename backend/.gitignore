@@ -21,6 +21,8 @@ yarn-error.log*
 coverage/
 *.lcov
 .nyc_output/
+.vitest/
+test-results/
 
 # OS and Editor files
 .DS_Store

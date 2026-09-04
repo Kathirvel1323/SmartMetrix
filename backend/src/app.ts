@@ -3,6 +3,7 @@ import cors from 'cors';
 import healthRoutes from './routes/health.routes';
 import authRoutes from './routes/auth.routes';
 import rbacTestRoutes from './routes/rbac-test.routes';
+import instrumentRoutes from './routes/instrument.routes';
 import { notFoundHandler, errorHandler } from './middleware/error.middleware';
 
 const app: Application = express();
@@ -24,6 +25,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/health', healthRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/test', rbacTestRoutes);
+app.use('/api/instruments', instrumentRoutes);
 
 // Error Handling Middleware
 app.use(notFoundHandler);
