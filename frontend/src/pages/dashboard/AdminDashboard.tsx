@@ -49,11 +49,14 @@ export const AdminDashboard: React.FC = () => {
     setIsGeneratingDemo(true);
     setDemoMessage('');
     try {
-      const res = await demoService.generateDemoData(100);
+      const res = await demoService.generateDemoData({
+        count: 100,
+        seed: 'smartmetrix-demo',
+      });
       setDemoMessage(`Successfully generated ${res.recordCounts?.instruments || 100} realistic legal metrology records!`);
       await loadData();
     } catch (err: any) {
-      setDemoMessage(`Demo generation failed: ${err.response?.data?.message || 'Error executing engine'}`);
+      setDemoMessage(`Demo generation failed: ${err.response?.data?.message || err.message || 'Error executing engine'}`);
     } finally {
       setIsGeneratingDemo(false);
     }
@@ -128,15 +131,15 @@ export const AdminDashboard: React.FC = () => {
         />
         <StatCard
           title="Completed Inspections"
-          value={kpis?.completedInspections ?? 0}
+          value={kpis?.totalInspections ?? 0}
           subtitle="Verified with HMAC integrity"
           icon={<ShieldCheck className="w-6 h-6" />}
           color="emerald"
         />
         <StatCard
-          title="Active Notices"
-          value={kpis?.activeNotices ?? 0}
-          subtitle="Improvement orders active"
+          title="High Risk Instruments"
+          value={kpis?.highRiskCount ?? 0}
+          subtitle="HIGH or CRITICAL risk level"
           icon={<AlertOctagon className="w-6 h-6" />}
           color="purple"
         />

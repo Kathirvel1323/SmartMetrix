@@ -82,11 +82,15 @@ export interface Inspection {
 
 export interface DashboardKpis {
   totalInstruments: number;
-  activeInstruments: number;
   pendingVerifications: number;
-  completedInspections: number;
-  totalCertificates: number;
-  activeNotices: number;
+  totalInspections: number;
+  activeCertificates: number;
+  highRiskCount: number;
+  // Legacy/optional fields kept for backwards compatibility
+  activeInstruments?: number;
+  completedInspections?: number;
+  totalCertificates?: number;
+  activeNotices?: number;
   riskDistribution?: Array<{ bandName: string; count: number; color?: string }>;
   passRatePercentage?: number;
 }
@@ -100,4 +104,163 @@ export interface NotificationItem {
   type: 'EXPIRY_WARNING' | 'HIGH_RISK_ALERT' | 'SYSTEM_NOTICE' | 'INSPECTION_SCHEDULED';
   isRead: boolean;
   createdAt: string;
+}
+
+// ── Batch 2 Types ──────────────────────────────────────────────────────────────
+
+export type CertificateStatus = 'VALID' | 'EXPIRED' | 'REVOKED' | 'SUPERSEDED';
+
+export interface Certificate {
+  _id: string;
+  certificateNumber: string;
+  publicVerificationId: string;
+  instrument: Instrument | string;
+  owner: User | string;
+  instrumentSnapshot: {
+    instrumentId: string;
+    type: string;
+    category: string;
+    manufacturer: string;
+    model: string;
+    maskedSerialNumber: string;
+    capacity: { value: number; unit: string };
+  };
+  verificationSnapshot: {
+    requestId: string;
+    verificationType: string;
+  };
+  inspectionSnapshot: {
+    inspectionId: string;
+    inspectorResult: string;
+    calculatedAssessment: string;
+    referenceReading: number;
+    actualReading: number;
+    deviation: number;
+    deviationPercentage: number | null;
+  };
+  verificationDate: string;
+  issuedAt: string;
+  validFrom: string;
+  expiresAt: string;
+  status: CertificateStatus;
+  policySnapshot: {
+    policyId: string;
+    name: string;
+    validityPeriodMonths: number;
+    version: number;
+  };
+  integrityMetadata: {
+    payloadHash: string;
+    hmacSeal: string;
+    algorithm: string;
+    label: string;
+  };
+  createdAt: string;
+}
+
+export type NoticeStatus =
+  | 'OPEN'
+  | 'CORRECTION_IN_PROGRESS'
+  | 'REINSPECTION_PENDING'
+  | 'CLOSED'
+  | 'ESCALATED';
+
+export interface ImprovementNotice {
+  _id: string;
+  noticeId: string;
+  instrument: Instrument | string;
+  inspection: Inspection | string;
+  issuedBy: User | string;
+  reason: string;
+  issueDate: string;
+  deadline: string;
+  requiredCorrection: string;
+  status: NoticeStatus;
+  reInspectionDate?: string;
+  closureRemarks?: string;
+  statusHistory: Array<{
+    status: NoticeStatus;
+    timestamp: string;
+    changedBy: string;
+    remarks?: string;
+  }>;
+  createdAt: string;
+}
+
+export interface RiskFactor {
+  factor: string;
+  available: boolean;
+  rawValue: number | null;
+  normalizedValue: number | null;
+  configuredWeight: number;
+  effectiveWeight: number;
+  contribution: number;
+}
+
+export interface RiskPriority {
+  _id: string;
+  assessmentId: string;
+  instrument: {
+    _id: string;
+    instrumentId: string;
+    name: string;
+    type: string;
+    location?: { city?: string; district?: string; state?: string };
+  };
+  instrumentIdSnapshot: string;
+  riskScore: number;
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  riskFactors: RiskFactor[];
+  missingFactors: string[];
+  dataCoverage: number;
+  recommendedAction: string;
+  disclaimer: string;
+  trustScore: number;
+  trustLevel: 'HIGH' | 'MEDIUM' | 'LOW' | 'UNKNOWN';
+  assessedAt: string;
+}
+
+export interface RiskConfiguration {
+  _id: string;
+  name: string;
+  isActive: boolean;
+  weights: Record<string, number>;
+  thresholds: Record<string, { min: number; max: number }>;
+  missingDataStrategy: string;
+  version: number;
+  createdAt: string;
+}
+
+export interface AnomalyAssessment {
+  _id: string;
+  assessmentId: string;
+  instrument: {
+    _id: string;
+    instrumentId: string;
+    name: string;
+    type: string;
+    location?: { city?: string; district?: string };
+  };
+  instrumentIdSnapshot: string;
+  method: 'ISOLATION_FOREST' | 'DETERMINISTIC_STATISTICAL_FALLBACK' | 'INSUFFICIENT_DATA';
+  status: 'POTENTIAL_ANOMALY' | 'NORMAL' | 'INSUFFICIENT_DATA';
+  potentialAnomaly: boolean;
+  anomalyScore: number | null;
+  confidence: number | null;
+  features: Array<{
+    name: string;
+    value: number | null;
+    available: boolean;
+    explanation: string;
+  }>;
+  dataCoverage: number;
+  contributingFactors: string[];
+  modelMetadata: {
+    algorithm: string;
+    version: string;
+    sampleCount: number;
+    featuresUsed: string[];
+  };
+  disclaimer: string;
+  assessedAt: string;
 }

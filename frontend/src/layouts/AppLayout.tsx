@@ -18,7 +18,13 @@ import {
   Menu,
   X,
   User as UserIcon,
-  ChevronDown
+  ChevronDown,
+  Zap,
+  Search,
+  Award,
+  MessageSquareWarning,
+  History,
+  Brain,
 } from 'lucide-react';
 
 export const AppLayout: React.FC = () => {
@@ -38,10 +44,16 @@ export const AppLayout: React.FC = () => {
     { label: 'Instruments', path: '/instruments', icon: Scale, roles: ['ADMIN', 'INSPECTOR', 'OWNER'] },
     { label: 'Verification', path: '/verifications', icon: ClipboardCheck, roles: ['ADMIN', 'INSPECTOR', 'OWNER'] },
     { label: 'Inspections', path: '/inspections', icon: ShieldCheck, roles: ['ADMIN', 'INSPECTOR', 'OWNER'] },
-    { label: 'Risk Intelligence', path: '/risk', icon: BrainCircuit, roles: ['ADMIN', 'INSPECTOR'] },
-    { label: 'Regional Intelligence', path: '/regional', icon: Map, roles: ['ADMIN', 'INSPECTOR'] },
     { label: 'Digital Passport', path: '/passport', icon: FileCheck2, roles: ['ADMIN', 'INSPECTOR', 'OWNER'] },
+    { label: 'Certificates', path: '/certificates', icon: Award, roles: ['ADMIN', 'INSPECTOR', 'OWNER'] },
+    { label: 'Complaints', path: '/complaints', icon: MessageSquareWarning, roles: ['ADMIN', 'INSPECTOR', 'OWNER'] },
+    { label: 'Risk Intelligence', path: '/risk', icon: BrainCircuit, roles: ['ADMIN', 'INSPECTOR'] },
+    { label: 'Anomaly Intelligence', path: '/anomaly', icon: Zap, roles: ['ADMIN', 'INSPECTOR'] },
+    { label: 'Regional Map', path: '/regional', icon: Map, roles: ['ADMIN', 'INSPECTOR'] },
+    { label: 'AI Decision Support', path: '/decision-support', icon: Brain, roles: ['ADMIN', 'INSPECTOR'] },
     { label: 'Improvement Notices', path: '/notices', icon: AlertOctagon, roles: ['ADMIN', 'INSPECTOR', 'OWNER'] },
+    { label: 'Global Search', path: '/search', icon: Search, roles: ['ADMIN', 'INSPECTOR', 'OWNER'] },
+    { label: 'Audit Trail', path: '/audit', icon: History, roles: ['ADMIN'] },
     { label: 'Reports', path: '/reports', icon: FileText, roles: ['ADMIN', 'INSPECTOR'] },
     { label: 'Notifications', path: '/notifications', icon: Bell, roles: ['ADMIN', 'INSPECTOR', 'OWNER'] },
     { label: 'Settings', path: '/settings', icon: Settings, roles: ['ADMIN', 'INSPECTOR', 'OWNER'] },
@@ -94,13 +106,13 @@ export const AppLayout: React.FC = () => {
           <nav className="p-3 space-y-1 overflow-y-auto max-h-[calc(100vh-140px)]">
             {filteredNav.map((item) => {
               const Icon = item.icon;
-              const isActive = location.pathname === item.path;
+              const isActive = location.pathname === item.path || (item.path !== '/dashboard' && location.pathname.startsWith(item.path));
               return (
                 <Link
                   key={item.path}
                   to={item.path}
                   onClick={() => setIsMobileOpen(false)}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold tracking-wide transition-all ${
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold tracking-wide transition-all ${
                     isActive
                       ? 'bg-gradient-to-r from-teal-600/30 to-teal-500/10 text-teal-400 border border-teal-500/30'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
@@ -146,12 +158,11 @@ export const AppLayout: React.FC = () => {
                 SmartMetrix Security Portal
               </span>
               <span>•</span>
-              <span className="text-teal-400 font-mono text-[11px]">LIVE VERIFICATION API</span>
+              <span className="text-teal-400 font-mono text-[11px]">STATUTORY ENFORCEMENT ENGINE</span>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Notification button placeholder */}
             <Link
               to="/notifications"
               className="relative p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"

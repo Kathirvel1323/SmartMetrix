@@ -68,8 +68,8 @@ export const InspectorDashboard: React.FC = () => {
         />
         <StatCard
           title="Completed This Month"
-          value={12}
-          subtitle="Sealed with HMAC integrity"
+          value={assignedRequests.filter((r) => r.status === 'PASSED').length}
+          subtitle="Passed inspections in current list"
           icon={<ShieldCheck className="w-6 h-6" />}
           color="emerald"
         />

@@ -15,6 +15,18 @@ import { NoticesPage } from '../pages/notices/NoticesPage';
 import { ReportsPage } from '../pages/reports/ReportsPage';
 import { NotificationsPage } from '../pages/notifications/NotificationsPage';
 import { SettingsPage } from '../pages/settings/SettingsPage';
+import { AnomalyPage } from '../pages/anomaly/AnomalyPage';
+
+// Batch 2 New Pages
+import { PublicVerifyPage } from '../pages/public/PublicVerifyPage';
+import { PublicComplaintPage } from '../pages/public/PublicComplaintPage';
+import { TrackComplaintPage } from '../pages/public/TrackComplaintPage';
+import { DigitalPassportPage } from '../pages/passport/DigitalPassportPage';
+import { ComplaintsPage } from '../pages/complaints/ComplaintsPage';
+import { SearchPage } from '../pages/search/SearchPage';
+import { AuditPage } from '../pages/audit/AuditPage';
+import { DecisionSupportPage } from '../pages/decision-support/DecisionSupportPage';
+
 import { LoadingState } from '../components/ui/LoadingState';
 
 const ProtectedRoute: React.FC<{
@@ -45,11 +57,15 @@ const ProtectedRoute: React.FC<{
 export const AppRoutes: React.FC = () => {
   return (
     <Routes>
-      {/* Public Authentication Routes */}
+      {/* Unauthenticated Public Routes */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/verify/:publicVerificationId" element={<PublicVerifyPage />} />
+      <Route path="/public/complaint" element={<PublicComplaintPage />} />
+      <Route path="/public/complaints/new" element={<PublicComplaintPage />} />
+      <Route path="/public/complaints/track" element={<TrackComplaintPage />} />
 
-      {/* Protected App Routes */}
+      {/* Protected App Layout Routes */}
       <Route
         element={
           <ProtectedRoute>
@@ -77,8 +93,18 @@ export const AppRoutes: React.FC = () => {
             </ProtectedRoute>
           }
         />
-        <Route path="/passport" element={<CertificatesPage />} />
+        <Route path="/passport" element={<DigitalPassportPage />} />
+        <Route path="/passport/:instrumentId" element={<DigitalPassportPage />} />
+        <Route path="/certificates" element={<CertificatesPage />} />
         <Route path="/notices" element={<NoticesPage />} />
+        <Route
+          path="/anomaly"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN', 'INSPECTOR']}>
+              <AnomalyPage />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/reports"
           element={
@@ -88,6 +114,24 @@ export const AppRoutes: React.FC = () => {
           }
         />
         <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/complaints" element={<ComplaintsPage />} />
+        <Route path="/search" element={<SearchPage />} />
+        <Route
+          path="/audit"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+              <AuditPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/decision-support"
+          element={
+            <ProtectedRoute allowedRoles={['ADMIN', 'INSPECTOR']}>
+              <DecisionSupportPage />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/settings" element={<SettingsPage />} />
       </Route>
 
