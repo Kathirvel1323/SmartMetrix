@@ -39,6 +39,7 @@ export interface IVerificationRequest extends Document {
   estimatedDurationMinutes?: number;
   scheduleLocation?: string;
   scheduleNotes?: string;
+  inspection?: mongoose.Types.ObjectId;
   statusHistory: IStatusHistoryEvent[];
   createdBy: mongoose.Types.ObjectId;
   updatedBy: mongoose.Types.ObjectId;
@@ -174,6 +175,10 @@ const verificationRequestSchema = new Schema<IVerificationRequest>(
     scheduleNotes: {
       type: String,
       trim: true
+    },
+    inspection: {
+      type: Schema.Types.ObjectId,
+      ref: 'Inspection'
     },
     statusHistory: {
       type: [statusHistorySchema],

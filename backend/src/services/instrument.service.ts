@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { Instrument, IInstrument, InstrumentStatus, ILifecycleEvent } from '../models/instrument.model';
+import { Inspection } from '../models/inspection.model';
 import { User, IUser } from '../models/user.model';
 import { generateInstrumentId } from '../utils/instrument-id.utils';
 
@@ -563,6 +564,52 @@ export class InstrumentService {
   async getPassport(instrumentId: string, caller: IUser): Promise<any> {
     const instrument = await this.getInstrumentById(instrumentId, caller);
 
+    // Fetch genuine finalized inspection records for this instrument
+    const inspections = await Inspection.find({
+      instrument: instrument._id,
+      status: 'FINALIZED'
+    })
+      .populate('inspector', 'name email')
+      .sort({ submittedAt: -1, inspectionDate: -1 });
+
+    const inspectionHistory = inspections.map((insp) => ({
+      inspectionId: insp.inspectionId,
+      inspectionDate: insp.inspectionDate,
+      referenceReading: insp.referenceReading,
+      actualReading: insp.actualReading,
+      deviation: insp.deviation,
+      deviationPercentage: insp.deviationPercentage,
+      toleranceSnapshot: insp.toleranceSnapshot,
+      calculatedAssessment: insp.calculatedAssessment,
+      inspectorResult: insp.inspectorResult,
+      overrideReason: insp.overrideReason || null,
+      serialNumberMatch: insp.serialNumberMatch,
+      conditionObservations: {
+        sealCondition: insp.sealCondition || null,
+        displayCondition: insp.displayCondition || null,
+        physicalDamage: insp.physicalDamage || null,
+        nameplateCondition: insp.nameplateCondition || null,
+        potentialTamperingIndicators: insp.potentialTamperingIndicators || null,
+        installationCondition: insp.installationCondition || null,
+        remarks: insp.remarks || null
+      },
+      evidenceCount: insp.evidence?.length || 0,
+      evidence: (insp.evidence || []).map((e) => ({
+        evidenceId: e.evidenceId,
+        originalMime: e.originalMime,
+        sizeBytes: e.sizeBytes,
+        uploadedAt: e.uploadedAt,
+        downloadUrl: `/api/inspections/${insp.inspectionId}/evidence/${e.evidenceId}`
+      })),
+      gps: insp.gps || null,
+      inspector: {
+        id: (insp.inspector as any)?._id || insp.inspector,
+        name: (insp.inspector as any)?.name || 'N/A',
+        email: (insp.inspector as any)?.email || 'N/A'
+      },
+      submittedAt: insp.submittedAt
+    }));
+
     return {
       passportVersion: '1.0',
       identity: {
@@ -585,6 +632,8 @@ export class InstrumentService {
       location: instrument.location,
       status: instrument.status,
       currentCertificate: instrument.currentCertificate || null,
+      inspectionHistory,
+      inspections: inspectionHistory,
       lifecycleTimeline: instrument.lifecycleHistory.map((e) => ({
         eventType: e.eventType,
         timestamp: e.timestamp,

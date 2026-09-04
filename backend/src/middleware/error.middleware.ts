@@ -47,6 +47,12 @@ export const errorHandler = (
     message = 'Malformed JSON request body.';
   }
 
+  // Handle Multer errors (file size limit, file count limit, unexpected fields)
+  if (err.name === 'MulterError') {
+    statusCode = 400;
+    message = err.message;
+  }
+
   // Internal diagnostic logging (safe from logging user passwords)
   if (statusCode >= 500) {
     console.error(`[Server Error] ${statusCode}:`, err);

@@ -5,6 +5,8 @@ import authRoutes from './routes/auth.routes';
 import rbacTestRoutes from './routes/rbac-test.routes';
 import instrumentRoutes from './routes/instrument.routes';
 import verificationRoutes from './routes/verification.routes';
+import toleranceRoutes from './routes/tolerance.routes';
+import inspectionRoutes from './routes/inspection.routes';
 import { notFoundHandler, errorHandler } from './middleware/error.middleware';
 
 const app: Application = express();
@@ -28,6 +30,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/test', rbacTestRoutes);
 app.use('/api/instruments', instrumentRoutes);
 app.use('/api/verifications', verificationRoutes);
+app.use('/api/tolerance-rules', toleranceRoutes);
+app.use('/api/inspections', inspectionRoutes);
 
 // Error Handling Middleware
 app.use(notFoundHandler);

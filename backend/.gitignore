@@ -29,3 +29,6 @@ test-results/
 Thumbs.db
 .vscode/
 .idea/
+
+# Evidence uploads (never commit user-uploaded files)
+uploads/
