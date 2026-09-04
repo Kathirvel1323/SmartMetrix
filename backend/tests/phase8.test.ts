@@ -46,6 +46,9 @@ describe('SmartMetrix Phase 8 — Digital Certificates, Public Verification, Com
 
   beforeAll(async () => {
     process.env.JWT_SECRET = process.env.JWT_SECRET || 'test_jwt_secret_key_minimum_32_characters_long';
+    process.env.AI_SERVICE_TOKEN = process.env.AI_SERVICE_TOKEN || 'test_ai_service_secret_token_min_32_chars';
+    process.env.CERTIFICATE_INTEGRITY_SECRET = process.env.CERTIFICATE_INTEGRITY_SECRET || 'test_cert_integrity_secret_min_32_characters_12345';
+    process.env.COMPLAINT_ENCRYPTION_KEY = process.env.COMPLAINT_ENCRYPTION_KEY || '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
 
     if (mongoose.connection.readyState === 0) {
       await mongoose.connect(TEST_DB_URI);

@@ -58,13 +58,19 @@ describe('Phase 6B Integration Tests: Isolation Forest Anomaly Detection', () =>
 
   beforeAll(async () => {
     process.env.JWT_SECRET = process.env.JWT_SECRET || 'test_jwt_secret_key_minimum_32_characters_12345';
+    process.env.AI_SERVICE_TOKEN = process.env.AI_SERVICE_TOKEN || 'test_ai_service_secret_token_min_32_chars';
     process.env.JWT_EXPIRES_IN = '1h';
+    process.env.AI_SERVICE_TIMEOUT_MS = '200';
 
     if (mongoose.connection.readyState === 0) {
       await mongoose.connect(TEST_DB_URI);
     }
 
     assertTestDatabaseSafety();
+
+    // Clean up any leftover demo batch records from other tests
+    await Instrument.deleteMany({ serialNumber: { $regex: /^SN-DEMO-/ } });
+    await Inspection.deleteMany({ inspectionId: { $regex: /^INS-DEMO-/ } });
 
     await AnomalyAssessment.syncIndexes();
     await Inspection.syncIndexes();

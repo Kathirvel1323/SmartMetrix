@@ -20,7 +20,6 @@ app = FastAPI(
 )
 
 # Service Token Authentication
-AI_SERVICE_TOKEN = os.getenv("AI_SERVICE_TOKEN", "smartmetrix_internal_ai_secret_token_2026")
 DEFAULT_MIN_SAMPLES = int(os.getenv("AI_MIN_SAMPLES", "5"))
 DEFAULT_CONTAMINATION = float(os.getenv("AI_CONTAMINATION", "0.1"))
 RANDOM_STATE = 42
@@ -118,7 +117,12 @@ def verify_token(authorization: Optional[str] = Header(None)) -> None:
     parts = authorization.split(" ")
     token = parts[1] if len(parts) == 2 and parts[0].lower() == "bearer" else parts[0]
 
-    expected_token = os.getenv("AI_SERVICE_TOKEN", AI_SERVICE_TOKEN)
+    expected_token = os.getenv("AI_SERVICE_TOKEN")
+    if not expected_token:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="AI_SERVICE_TOKEN is not configured on server"
+        )
     if token != expected_token:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

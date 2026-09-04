@@ -1,8 +1,13 @@
+import os
 import io
 import pytest
+
+TEST_AI_TOKEN = "test_ai_service_token_min_32_characters_12345"
+os.environ["AI_SERVICE_TOKEN"] = TEST_AI_TOKEN
+
 from PIL import Image, ImageDraw
 from fastapi.testclient import TestClient
-from main import app, DISCLAIMER_TEXT, AI_SERVICE_TOKEN
+from main import app, DISCLAIMER_TEXT
 
 client = TestClient(app)
 
@@ -34,7 +39,7 @@ def test_insufficient_data():
     response = client.post(
         "/detect-anomaly",
         json={"records": records, "minSamples": 5},
-        headers={"Authorization": f"Bearer {AI_SERVICE_TOKEN}"}
+        headers={"Authorization": f"Bearer {TEST_AI_TOKEN}"}
     )
     assert response.status_code == 200
     data = response.json()
@@ -57,7 +62,7 @@ def test_reject_nan_infinity():
             ],
             minSamples=5
         )
-        detect_anomaly(req, authorization=f"Bearer {AI_SERVICE_TOKEN}")
+        detect_anomaly(req, authorization=f"Bearer {TEST_AI_TOKEN}")
     assert "Invalid numeric value" in str(excinfo.value.detail)
 
 def test_valid_isolation_forest_batch_and_determinism():
@@ -86,12 +91,12 @@ def test_valid_isolation_forest_batch_and_determinism():
     res1 = client.post(
         "/detect-anomaly",
         json={"records": records, "minSamples": 5, "contamination": 0.1},
-        headers={"Authorization": f"Bearer {AI_SERVICE_TOKEN}"}
+        headers={"Authorization": f"Bearer {TEST_AI_TOKEN}"}
     )
     res2 = client.post(
         "/detect-anomaly",
         json={"records": records, "minSamples": 5, "contamination": 0.1},
-        headers={"Authorization": f"Bearer {AI_SERVICE_TOKEN}"}
+        headers={"Authorization": f"Bearer {TEST_AI_TOKEN}"}
     )
 
     assert res1.status_code == 200
@@ -120,7 +125,7 @@ def test_photo_assist_valid_image():
     res = client.post(
         "/photo-assist",
         files={"file": ("test.png", buf, "image/png")},
-        headers={"Authorization": f"Bearer {AI_SERVICE_TOKEN}"}
+        headers={"Authorization": f"Bearer {TEST_AI_TOKEN}"}
     )
     assert res.status_code == 200
     data = res.json()
@@ -136,7 +141,7 @@ def test_photo_assist_reject_invalid_image():
     res = client.post(
         "/photo-assist",
         files={"file": ("fake.txt", fake_buf, "text/plain")},
-        headers={"Authorization": f"Bearer {AI_SERVICE_TOKEN}"}
+        headers={"Authorization": f"Bearer {TEST_AI_TOKEN}"}
     )
     assert res.status_code == 400
     assert "Invalid image format" in res.json()["detail"]
@@ -151,7 +156,7 @@ def test_predictive_analysis_insufficient_data():
     res = client.post(
         "/predictive-analysis",
         json=req,
-        headers={"Authorization": f"Bearer {AI_SERVICE_TOKEN}"}
+        headers={"Authorization": f"Bearer {TEST_AI_TOKEN}"}
     )
     assert res.status_code == 200
     data = res.json()
@@ -170,7 +175,7 @@ def test_predictive_analysis_worsening_trend():
     res = client.post(
         "/predictive-analysis",
         json=req,
-        headers={"Authorization": f"Bearer {AI_SERVICE_TOKEN}"}
+        headers={"Authorization": f"Bearer {TEST_AI_TOKEN}"}
     )
     assert res.status_code == 200
     data = res.json()

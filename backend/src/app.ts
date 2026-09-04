@@ -15,6 +15,12 @@ import certificateRoutes from './routes/certificate.routes';
 import publicVerifyRoutes from './routes/public-verify.routes';
 import complaintRoutes from './routes/complaint.routes';
 import improvementNoticeRoutes from './routes/improvement-notice.routes';
+import auditRoutes from './routes/audit.routes';
+import notificationRoutes from './routes/notification.routes';
+import analyticsRoutes from './routes/analytics.routes';
+import reportRoutes from './routes/report.routes';
+import searchRoutes from './routes/search.routes';
+import demoDataRoutes from './routes/demo-data.routes';
 import { notFoundHandler, errorHandler } from './middleware/error.middleware';
 
 const app: Application = express();
@@ -48,6 +54,12 @@ app.use('/api/certificates', certificateRoutes);
 app.use('/api/public', publicVerifyRoutes);
 app.use('/api/complaints', complaintRoutes);
 app.use('/api/improvement-notices', improvementNoticeRoutes);
+app.use('/api/audit-logs', auditRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/reports', reportRoutes);
+app.use('/api/search', searchRoutes);
+app.use('/api/admin/demo-data', demoDataRoutes);
 
 // Error Handling Middleware
 app.use(notFoundHandler);

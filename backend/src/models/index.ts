@@ -17,3 +17,6 @@ export * from './certificate-policy.model';
 export * from './certificate.model';
 export * from './complaint.model';
 export * from './improvement-notice.model';
+export * from './audit-log.model';
+export * from './notification.model';
+export * from './demo-batch.model';

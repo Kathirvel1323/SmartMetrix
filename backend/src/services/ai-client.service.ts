@@ -87,23 +87,41 @@ export class AiServiceClient {
   }
 
   private get serviceToken(): string {
-    return process.env.AI_SERVICE_TOKEN || 'smartmetrix_internal_ai_secret_token_2026';
+    const token = process.env.AI_SERVICE_TOKEN;
+    if (!token) {
+      throw new Error('AI_SERVICE_TOKEN is not configured in environment variables');
+    }
+    return token;
   }
 
   private get timeoutMs(): number {
+    if (process.env.NODE_ENV === 'test' && !process.env.AI_SERVICE_TIMEOUT_MS) {
+      return 200;
+    }
     return Number(process.env.AI_SERVICE_TIMEOUT_MS) || 5000;
   }
 
+  private lastHealthCheckTime = 0;
+  private lastHealthStatus = true;
+
   async checkHealth(): Promise<boolean> {
+    const now = Date.now();
+    if (now - this.lastHealthCheckTime < 5000) {
+      return this.lastHealthStatus;
+    }
     try {
       const controller = new AbortController();
-      const id = setTimeout(() => controller.abort(), Math.min(2000, this.timeoutMs));
+      const id = setTimeout(() => controller.abort(), Math.min(1000, this.timeoutMs));
       const res = await fetch(`${this.baseUrl}/health`, {
         signal: controller.signal
       });
       clearTimeout(id);
+      this.lastHealthStatus = res.ok;
+      this.lastHealthCheckTime = now;
       return res.ok;
     } catch {
+      this.lastHealthStatus = false;
+      this.lastHealthCheckTime = now;
       return false;
     }
   }
@@ -111,6 +129,11 @@ export class AiServiceClient {
   async detectAnomaly(
     payload: AnomalyDetectionRequestPayload
   ): Promise<AnomalyDetectionResponsePayload> {
+    const isHealthy = await this.checkHealth();
+    if (!isHealthy) {
+      throw new Error('AI Service is offline (health check failed)');
+    }
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeoutMs);
 

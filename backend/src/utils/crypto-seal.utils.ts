@@ -1,7 +1,29 @@
 import crypto from 'crypto';
 
-const DEFAULT_HMAC_SECRET = 'smartmetrix_cert_integrity_secret_2026_key_32_chars';
-const DEFAULT_AES_KEY = '0123456789abcdef0123456789abcdef'; // 32 hex chars / 16 bytes key (or 64 hex chars for 32 bytes)
+export function getCertificateIntegritySecret(): string {
+  const secret = process.env.CERTIFICATE_INTEGRITY_SECRET;
+  if (!secret || secret.length < 32) {
+    throw new Error('CERTIFICATE_INTEGRITY_SECRET must be configured and at least 32 characters long');
+  }
+  return secret;
+}
+
+export function getComplaintEncryptionKey(): Buffer {
+  const rawKey = process.env.COMPLAINT_ENCRYPTION_KEY;
+  if (!rawKey) {
+    throw new Error('COMPLAINT_ENCRYPTION_KEY is not configured in environment variables');
+  }
+  let keyBuf: Buffer;
+  if (rawKey.length === 64 && /^[0-9a-fA-F]+$/.test(rawKey)) {
+    keyBuf = Buffer.from(rawKey, 'hex');
+  } else {
+    keyBuf = Buffer.from(rawKey, 'utf-8');
+  }
+  if (keyBuf.length !== 32) {
+    throw new Error('COMPLAINT_ENCRYPTION_KEY must decode to exactly 32 bytes (64 hex characters or 32 raw bytes)');
+  }
+  return keyBuf;
+}
 
 export interface EncryptedPayload {
   iv: string;
@@ -20,7 +42,7 @@ export interface IntegritySealResult {
  * Creates canonical SHA-256 hash and HMAC-SHA256 seal for tamper-evident certificate metadata.
  */
 export function createIntegritySeal(payload: Record<string, any>): IntegritySealResult {
-  const secret = process.env.CERTIFICATE_INTEGRITY_SECRET || DEFAULT_HMAC_SECRET;
+  const secret = getCertificateIntegritySecret();
 
   // Sort keys recursively for canonical JSON representation
   const canonicalJson = JSON.stringify(payload, Object.keys(payload).sort());
@@ -54,9 +76,7 @@ export function verifyIntegritySeal(payload: Record<string, any>, expectedHash: 
  * Encrypts sensitive complainant contact data at rest using AES-256-GCM.
  */
 export function encryptContact(plainText: string): EncryptedPayload {
-  const rawKey = process.env.COMPLAINT_ENCRYPTION_KEY || DEFAULT_AES_KEY;
-  // Ensure key is 32 bytes
-  const key = crypto.createHash('sha256').update(rawKey).digest();
+  const key = getComplaintEncryptionKey();
   const iv = crypto.randomBytes(12); // 96-bit IV for GCM
 
   const cipher = crypto.createCipheriv('aes-256-gcm', key, iv);
@@ -76,8 +96,7 @@ export function encryptContact(plainText: string): EncryptedPayload {
  */
 export function decryptContact(payload: EncryptedPayload): string {
   try {
-    const rawKey = process.env.COMPLAINT_ENCRYPTION_KEY || DEFAULT_AES_KEY;
-    const key = crypto.createHash('sha256').update(rawKey).digest();
+    const key = getComplaintEncryptionKey();
     const iv = Buffer.from(payload.iv, 'hex');
     const authTag = Buffer.from(payload.authTag, 'hex');
 
