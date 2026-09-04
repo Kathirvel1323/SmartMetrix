@@ -1,0 +1,60 @@
+@import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
+
+@layer base {
+  :root {
+    --color-slate-900: #0f172a;
+    --color-slate-800: #1e293b;
+    --color-teal-600: #0d9488;
+    --color-teal-500: #14b8a6;
+  }
+
+  body {
+    @apply bg-slate-900 text-slate-100 antialiased font-sans selection:bg-teal-500 selection:text-slate-900;
+    min-height: 100vh;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+}
+
+/* Leaflet map custom overrides for command center dark mode look */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 0.75rem;
+  background-color: #0f172a !important;
+  z-index: 10;
+}
+
+.leaflet-tile {
+  filter: brightness(0.7) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
+}
+
+.leaflet-popup-content-wrapper {
+  background-color: #1e293b !important;
+  color: #f8fafc !important;
+  border: 1px solid #334155 !important;
+  border-radius: 0.5rem !important;
+}
+
+.leaflet-popup-tip {
+  background-color: #1e293b !important;
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
