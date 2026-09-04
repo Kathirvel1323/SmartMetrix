@@ -7,6 +7,7 @@ import instrumentRoutes from './routes/instrument.routes';
 import verificationRoutes from './routes/verification.routes';
 import toleranceRoutes from './routes/tolerance.routes';
 import inspectionRoutes from './routes/inspection.routes';
+import riskRoutes from './routes/risk.routes';
 import { notFoundHandler, errorHandler } from './middleware/error.middleware';
 
 const app: Application = express();
@@ -32,6 +33,7 @@ app.use('/api/instruments', instrumentRoutes);
 app.use('/api/verifications', verificationRoutes);
 app.use('/api/tolerance-rules', toleranceRoutes);
 app.use('/api/inspections', inspectionRoutes);
+app.use('/api/risk', riskRoutes);
 
 // Error Handling Middleware
 app.use(notFoundHandler);
