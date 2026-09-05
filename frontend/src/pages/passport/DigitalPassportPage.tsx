@@ -30,8 +30,8 @@ export const DigitalPassportPage: React.FC = () => {
       .then((res: any) => {
         const list = res.instruments || res || [];
         setInstruments(list);
-        if (!selectedId && list.length > 0) {
-          setSelectedId(list[0].instrumentId);
+        if (list.length > 0) {
+          setSelectedId((current) => current || list[0].instrumentId);
         }
       })
       .catch(() => {})

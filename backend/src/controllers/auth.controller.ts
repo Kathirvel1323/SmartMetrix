@@ -11,8 +11,8 @@ export const register = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { name, email, password } = req.body;
-    const result = await authService.register({ name, email, password });
+    const { name, email, password, phone, organization } = req.body;
+    const result = await authService.register({ name, email, password, phone, organization });
 
     res.status(201).json({
       status: 'success',

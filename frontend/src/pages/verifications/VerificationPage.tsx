@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { verificationService } from '../../services/verification.service';
 import type { VerificationRequest } from '../../types';
 import { useAuth } from '../../context/AuthContext';
@@ -28,7 +28,7 @@ export const VerificationPage: React.FC = () => {
   const [assignTarget, setAssignTarget] = useState<VerificationRequest | null>(null);
   const [conductTarget, setConductTarget] = useState<VerificationRequest | null>(null);
 
-  const fetchVerifications = async () => {
+  const fetchVerifications = useCallback(async () => {
     setIsLoading(true);
     try {
       const res = await verificationService.getVerificationRequests({
@@ -44,11 +44,11 @@ export const VerificationPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [page, statusFilter]);
 
   useEffect(() => {
-    fetchVerifications();
-  }, [page, statusFilter]);
+    void fetchVerifications();
+  }, [fetchVerifications]);
 
   const getStatusBadgeVariant = (status: string): BadgeVariant => {
     switch (status) {

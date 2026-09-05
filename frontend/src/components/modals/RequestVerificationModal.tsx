@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Select } from '../ui/Select';
@@ -28,27 +28,27 @@ export const RequestVerificationModal: React.FC<RequestVerificationModalProps> =
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
-  const loadInstruments = async () => {
+  const loadInstruments = useCallback(async () => {
     try {
       const res = await instrumentService.getInstruments({ limit: 50 });
       setInstruments(res.instruments);
-      if (res.instruments.length > 0 && !selectedInstrumentId) {
-        setSelectedInstrumentId(res.instruments[0]._id || res.instruments[0].instrumentId);
+      if (res.instruments.length > 0) {
+        setSelectedInstrumentId((current) => current || res.instruments[0]._id || res.instruments[0].instrumentId);
       }
     } catch {
       setInstruments([]);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
       if (preselectedInstrument) {
         setSelectedInstrumentId(preselectedInstrument._id || preselectedInstrument.instrumentId);
       } else {
-        loadInstruments();
+        void loadInstruments();
       }
     }
-  }, [isOpen, preselectedInstrument]);
+  }, [isOpen, loadInstruments, preselectedInstrument]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

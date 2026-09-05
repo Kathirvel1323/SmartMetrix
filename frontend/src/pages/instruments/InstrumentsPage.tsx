@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { instrumentService } from '../../services/instrument.service';
 import type { Instrument } from '../../types';
 import { PageHeader } from '../../components/ui/PageHeader';
@@ -20,6 +20,7 @@ export const InstrumentsPage: React.FC = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [search, setSearch] = useState('');
+  const [appliedSearch, setAppliedSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
@@ -28,11 +29,11 @@ export const InstrumentsPage: React.FC = () => {
   const [selectedInstrumentId, setSelectedInstrumentId] = useState<string | null>(null);
   const [requestVerificationTarget, setRequestVerificationTarget] = useState<Instrument | null>(null);
 
-  const fetchInstruments = async () => {
+  const fetchInstruments = useCallback(async () => {
     setIsLoading(true);
     try {
       const res = await instrumentService.getInstruments({
-        search,
+        search: appliedSearch,
         type: typeFilter,
         page,
         limit: 10,
@@ -45,16 +46,16 @@ export const InstrumentsPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [appliedSearch, page, typeFilter]);
 
   useEffect(() => {
-    fetchInstruments();
-  }, [page, typeFilter]);
+    void fetchInstruments();
+  }, [fetchInstruments]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setAppliedSearch(search.trim());
     setPage(1);
-    fetchInstruments();
   };
 
   const columns: Column<Instrument>[] = [

@@ -35,7 +35,24 @@ export const SearchPage: React.FC = () => {
   };
 
   useEffect(() => {
-    handleSearch();
+    let active = true;
+    setIsLoading(true);
+    setHasSearched(true);
+    searchService
+      .search({ limit: 50 })
+      .then((data) => {
+        if (active) setResults(data.results || []);
+      })
+      .catch(() => {
+        if (active) setResults([]);
+      })
+      .finally(() => {
+        if (active) setIsLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   const getEntityIcon = (type: string) => {
