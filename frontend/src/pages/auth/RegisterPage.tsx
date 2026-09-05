@@ -29,7 +29,7 @@ export const RegisterPage: React.FC = () => {
       await register(formData);
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to register account. Please check inputs.');
+      setError(err.response?.data?.message || err.message || 'Failed to register account. Please check inputs.');
     } finally {
       setIsLoading(false);
     }
