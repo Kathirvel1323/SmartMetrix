@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { auditService } from '../../services/audit.service';
 import type { AuditLogItem } from '../../services/audit.service';
 import { PageHeader } from '../../components/ui/PageHeader';
@@ -15,7 +15,7 @@ export const AuditPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchLogs = async (page = 1) => {
+  const fetchLogs = useCallback(async (page = 1) => {
     setIsLoading(true);
     try {
       const res = await auditService.getAuditLogs({
@@ -33,11 +33,11 @@ export const AuditPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [action, entityType, resultStatus]);
 
   useEffect(() => {
-    fetchLogs(1);
-  }, [entityType, action, resultStatus]);
+    void fetchLogs(1);
+  }, [fetchLogs]);
 
   if (isLoading && logs.length === 0) {
     return <LoadingState message="Loading immutable statutory audit trail logs..." />;

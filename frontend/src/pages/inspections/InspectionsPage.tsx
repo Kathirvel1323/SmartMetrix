@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { inspectionService } from '../../services/inspection.service';
 import type { Inspection } from '../../types';
 import { PageHeader } from '../../components/ui/PageHeader';
@@ -22,7 +22,7 @@ export const InspectionsPage: React.FC = () => {
   // Modal State
   const [selectedInspectionId, setSelectedInspectionId] = useState<string | null>(null);
 
-  const fetchInspections = async () => {
+  const fetchInspections = useCallback(async () => {
     setIsLoading(true);
     try {
       const res = await inspectionService.getInspections({
@@ -38,11 +38,11 @@ export const InspectionsPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [page, resultFilter]);
 
   useEffect(() => {
-    fetchInspections();
-  }, [page, resultFilter]);
+    void fetchInspections();
+  }, [fetchInspections]);
 
   const columns: Column<Inspection>[] = [
     {

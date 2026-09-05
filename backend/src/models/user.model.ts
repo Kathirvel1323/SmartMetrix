@@ -7,6 +7,8 @@ export interface IUser extends Document {
   name: string;
   email: string;
   password?: string;
+  phone?: string;
+  organization?: string;
   role: UserRole;
   isActive: boolean;
   tokenVersion: number;
@@ -40,6 +42,16 @@ const userSchema = new Schema<IUser>(
       required: [true, 'Password is required'],
       minlength: [8, 'Password must be at least 8 characters'],
       select: false // Never include password in query results by default
+    },
+    phone: {
+      type: String,
+      trim: true,
+      maxlength: [30, 'Phone number cannot exceed 30 characters']
+    },
+    organization: {
+      type: String,
+      trim: true,
+      maxlength: [200, 'Organization name cannot exceed 200 characters']
     },
     role: {
       type: String,

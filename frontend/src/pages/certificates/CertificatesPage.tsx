@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { certificateService } from '../../services/certificate.service';
 import type { CertificatePolicy } from '../../services/certificate.service';
 import type { Certificate } from '../../types';
@@ -26,6 +26,7 @@ const formatDate = (iso: string) =>
 
 export const CertificatesPage: React.FC = () => {
   const { user } = useAuth();
+  const userRole = user?.role;
   const [activeTab, setActiveTab] = useState<'certs' | 'policies'>('certs');
 
   const [certificates, setCertificates] = useState<Certificate[]>([]);
@@ -48,13 +49,13 @@ export const CertificatesPage: React.FC = () => {
     validityPeriodMonths: 12,
   });
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setIsLoading(true);
     setError('');
     try {
       const certs = await certificateService.listCertificates();
       setCertificates(certs);
-      if (user?.role === 'ADMIN' || user?.role === 'INSPECTOR') {
+      if (userRole === 'ADMIN' || userRole === 'INSPECTOR') {
         const pols = await certificateService.listPolicies();
         setPolicies(pols);
       }
@@ -63,11 +64,11 @@ export const CertificatesPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [userRole]);
 
   useEffect(() => {
-    loadData();
-  }, [user]);
+    void loadData();
+  }, [loadData]);
 
   const handleRevoke = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,7 +78,7 @@ export const CertificatesPage: React.FC = () => {
       await certificateService.revokeCertificate(revokeCertNumber, revokeReason.trim());
       setRevokeCertNumber(null);
       setRevokeReason('');
-      loadData();
+      void loadData();
     } catch (err: any) {
       alert(err.message || 'Failed to revoke certificate');
     } finally {
@@ -90,7 +91,7 @@ export const CertificatesPage: React.FC = () => {
     try {
       await certificateService.createPolicy(newPolicy);
       setShowPolicyModal(false);
-      loadData();
+      void loadData();
     } catch (err: any) {
       alert(err.message || 'Failed to create policy');
     }

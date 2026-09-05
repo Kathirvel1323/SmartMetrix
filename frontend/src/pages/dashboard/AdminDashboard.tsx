@@ -49,7 +49,7 @@ export const AdminDashboard: React.FC = () => {
           return [{ id: feature.properties?.instrumentId || `${lat}-${lon}`, lat, lon, label: feature.properties?.instrumentId || 'Instrument' }];
         }));
       }
-    } catch (err: any) {
+    } catch {
       setError('Unable to retrieve admin analytics data from the server.');
     } finally {
       setIsLoading(false);

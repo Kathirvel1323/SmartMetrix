@@ -1,35 +1,34 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { AppLayout } from '../layouts/AppLayout';
 import { LoginPage } from '../pages/auth/LoginPage';
 import { RegisterPage } from '../pages/auth/RegisterPage';
-import { DashboardPage } from '../pages/dashboard/DashboardPage';
-import { InstrumentsPage } from '../pages/instruments/InstrumentsPage';
-import { VerificationPage } from '../pages/verifications/VerificationPage';
-import { InspectionsPage } from '../pages/inspections/InspectionsPage';
-import { RiskIntelligencePage } from '../pages/risk/RiskIntelligencePage';
-import { RegionalIntelligencePage } from '../pages/regional/RegionalIntelligencePage';
-import { CertificatesPage } from '../pages/certificates/CertificatesPage';
-import { NoticesPage } from '../pages/notices/NoticesPage';
-import { ReportsPage } from '../pages/reports/ReportsPage';
-import { NotificationsPage } from '../pages/notifications/NotificationsPage';
-import { SettingsPage } from '../pages/settings/SettingsPage';
-import { AnomalyPage } from '../pages/anomaly/AnomalyPage';
-
-// Batch 2 New Pages
 import { PublicVerifyPage } from '../pages/public/PublicVerifyPage';
 import { PublicComplaintPage } from '../pages/public/PublicComplaintPage';
 import { TrackComplaintPage } from '../pages/public/TrackComplaintPage';
-import { DigitalPassportPage } from '../pages/passport/DigitalPassportPage';
-import { ComplaintsPage } from '../pages/complaints/ComplaintsPage';
-import { SearchPage } from '../pages/search/SearchPage';
-import { AuditPage } from '../pages/audit/AuditPage';
-import { DecisionSupportPage } from '../pages/decision-support/DecisionSupportPage';
 
 import { NotFoundPage } from '../pages/NotFoundPage';
 import { ForbiddenPage } from '../pages/ForbiddenPage';
 import { LoadingState } from '../components/ui/LoadingState';
+
+const DashboardPage = lazy(() => import('../pages/dashboard/DashboardPage').then((module) => ({ default: module.DashboardPage })));
+const InstrumentsPage = lazy(() => import('../pages/instruments/InstrumentsPage').then((module) => ({ default: module.InstrumentsPage })));
+const VerificationPage = lazy(() => import('../pages/verifications/VerificationPage').then((module) => ({ default: module.VerificationPage })));
+const InspectionsPage = lazy(() => import('../pages/inspections/InspectionsPage').then((module) => ({ default: module.InspectionsPage })));
+const RiskIntelligencePage = lazy(() => import('../pages/risk/RiskIntelligencePage').then((module) => ({ default: module.RiskIntelligencePage })));
+const RegionalIntelligencePage = lazy(() => import('../pages/regional/RegionalIntelligencePage').then((module) => ({ default: module.RegionalIntelligencePage })));
+const CertificatesPage = lazy(() => import('../pages/certificates/CertificatesPage').then((module) => ({ default: module.CertificatesPage })));
+const NoticesPage = lazy(() => import('../pages/notices/NoticesPage').then((module) => ({ default: module.NoticesPage })));
+const ReportsPage = lazy(() => import('../pages/reports/ReportsPage').then((module) => ({ default: module.ReportsPage })));
+const NotificationsPage = lazy(() => import('../pages/notifications/NotificationsPage').then((module) => ({ default: module.NotificationsPage })));
+const SettingsPage = lazy(() => import('../pages/settings/SettingsPage').then((module) => ({ default: module.SettingsPage })));
+const AnomalyPage = lazy(() => import('../pages/anomaly/AnomalyPage').then((module) => ({ default: module.AnomalyPage })));
+const DigitalPassportPage = lazy(() => import('../pages/passport/DigitalPassportPage').then((module) => ({ default: module.DigitalPassportPage })));
+const ComplaintsPage = lazy(() => import('../pages/complaints/ComplaintsPage').then((module) => ({ default: module.ComplaintsPage })));
+const SearchPage = lazy(() => import('../pages/search/SearchPage').then((module) => ({ default: module.SearchPage })));
+const AuditPage = lazy(() => import('../pages/audit/AuditPage').then((module) => ({ default: module.AuditPage })));
+const DecisionSupportPage = lazy(() => import('../pages/decision-support/DecisionSupportPage').then((module) => ({ default: module.DecisionSupportPage })));
 
 const ProtectedRoute: React.FC<{
   children: React.ReactNode;
@@ -58,7 +57,14 @@ const ProtectedRoute: React.FC<{
 
 export const AppRoutes: React.FC = () => {
   return (
-    <Routes>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+          <LoadingState message="Loading SmartMetrix module..." />
+        </div>
+      }
+    >
+      <Routes>
       {/* Unauthenticated Public Routes */}
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="/login" element={<LoginPage />} />
@@ -141,6 +147,7 @@ export const AppRoutes: React.FC = () => {
 
       {/* 404 Fallback */}
       <Route path="*" element={<NotFoundPage />} />
-    </Routes>
+      </Routes>
+    </Suspense>
   );
 };

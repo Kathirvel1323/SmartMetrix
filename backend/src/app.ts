@@ -1,5 +1,6 @@
 import express, { Application } from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import healthRoutes from './routes/health.routes';
 import authRoutes from './routes/auth.routes';
 import rbacTestRoutes from './routes/rbac-test.routes';
@@ -24,6 +25,9 @@ import demoDataRoutes from './routes/demo-data.routes';
 import { notFoundHandler, errorHandler } from './middleware/error.middleware';
 
 const app: Application = express();
+
+app.disable('x-powered-by');
+app.use(helmet());
 
 // CORS Middleware configuration
 const corsOrigin = process.env.CORS_ORIGIN || '*';

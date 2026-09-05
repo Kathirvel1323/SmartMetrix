@@ -5,6 +5,8 @@ export interface RegisterDTO {
   name: string;
   email: string;
   password: string;
+  phone?: string;
+  organization?: string;
 }
 
 export interface LoginDTO {
@@ -20,11 +22,14 @@ export interface CreateInspectorDTO {
 
 export interface AuthResult {
   user: {
+    _id: string;
     id: string;
     name: string;
     email: string;
     role: UserRole;
     isActive: boolean;
+    phone?: string;
+    organization?: string;
     createdAt: Date;
   };
   token: string;
@@ -35,7 +40,7 @@ export class AuthService {
    * Registers a new user. Public registration ALWAYS assigns the OWNER role.
    */
   async register(data: RegisterDTO): Promise<AuthResult> {
-    const { name, email, password } = data;
+    const { name, email, password, phone, organization } = data;
 
     // Validate inputs
     if (!name || name.trim().length < 2) {
@@ -71,6 +76,8 @@ export class AuthService {
       name: name.trim(),
       email: normalizedEmail,
       password,
+      phone: phone?.trim() || undefined,
+      organization: organization?.trim() || undefined,
       role: 'OWNER',
       isActive: true,
       tokenVersion: 0
@@ -86,11 +93,14 @@ export class AuthService {
 
     return {
       user: {
+        _id: user._id.toString(),
         id: user._id.toString(),
         name: user.name,
         email: user.email,
         role: user.role,
         isActive: user.isActive,
+        phone: user.phone,
+        organization: user.organization,
         createdAt: user.createdAt
       },
       token
@@ -140,11 +150,14 @@ export class AuthService {
 
     return {
       user: {
+        _id: user._id.toString(),
         id: user._id.toString(),
         name: user.name,
         email: user.email,
         role: user.role,
         isActive: user.isActive,
+        phone: user.phone,
+        organization: user.organization,
         createdAt: user.createdAt
       },
       token

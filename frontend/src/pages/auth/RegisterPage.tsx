@@ -102,37 +102,51 @@ export const RegisterPage: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
               label="Full Name / Representative"
+              name="name"
               placeholder="e.g. Ramesh Kumar"
+              autoComplete="name"
+              minLength={2}
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               required
             />
             <Input
               label="Email Address"
+              name="email"
               type="email"
               placeholder="e.g. ramesh@traders.com"
+              autoComplete="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               required
             />
             <Input
               label="Organization / Business Name"
+              name="organization"
               placeholder="e.g. Apex Commodities Pvt Ltd"
               icon={<Building2 className="w-4 h-4" />}
+              autoComplete="organization"
+              maxLength={200}
               value={formData.organization}
               onChange={(e) => setFormData({ ...formData, organization: e.target.value })}
             />
             <Input
               label="Phone Number"
+              name="phone"
               type="tel"
               placeholder="e.g. +91 98765 43210"
+              autoComplete="tel"
+              maxLength={30}
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
             />
             <Input
               label="Password"
+              name="password"
               type={showPassword ? 'text' : 'password'}
-              placeholder="Min 6 characters"
+              placeholder="Minimum 8 characters"
+              autoComplete="new-password"
+              minLength={8}
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               required

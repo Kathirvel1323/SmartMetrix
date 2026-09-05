@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Modal } from '../ui/Modal';
 import { Badge } from '../ui/Badge';
 import { LoadingState } from '../ui/LoadingState';
@@ -20,13 +20,7 @@ export const InspectionDetailModal: React.FC<InspectionDetailModalProps> = ({
   const [inspection, setInspection] = useState<Inspection | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    if (isOpen && inspectionId) {
-      fetchInspection(inspectionId);
-    }
-  }, [isOpen, inspectionId]);
-
-  const fetchInspection = async (id: string) => {
+  const fetchInspection = useCallback(async (id: string) => {
     setIsLoading(true);
     try {
       const data = await inspectionService.getInspectionById(id);
@@ -36,7 +30,13 @@ export const InspectionDetailModal: React.FC<InspectionDetailModalProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (isOpen && inspectionId) {
+      void fetchInspection(inspectionId);
+    }
+  }, [fetchInspection, isOpen, inspectionId]);
 
   if (!isOpen) return null;
 
