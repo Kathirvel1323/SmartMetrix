@@ -14,7 +14,7 @@ export const ComplaintsPage: React.FC = () => {
 
   // Modal / status update state
   const [selectedComplaint, setSelectedComplaint] = useState<ComplaintItem | null>(null);
-  const [updateStatus, setUpdateStatus] = useState<string>('UNDER_INVESTIGATION');
+  const [updateStatus, setUpdateStatus] = useState<string>('UNDER_REVIEW');
   const [remarks, setRemarks] = useState<string>('');
   const [resolutionSummary, setResolutionSummary] = useState<string>('');
   const [isUpdating, setIsUpdating] = useState(false);
@@ -59,13 +59,21 @@ export const ComplaintsPage: React.FC = () => {
     switch (status) {
       case 'RESOLVED':
         return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-teal-950 text-teal-300 border border-teal-500/40">RESOLVED</span>;
-      case 'UNDER_INVESTIGATION':
-        return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-500/40">UNDER INVESTIGATION</span>;
-      case 'REJECTED':
-        return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-red-950 text-red-300 border border-red-500/40">REJECTED</span>;
+      case 'UNDER_REVIEW':
+      case 'INVESTIGATING':
+        return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-950 text-amber-300 border border-amber-500/40">{status.replace('_', ' ')}</span>;
+      case 'DISMISSED':
+        return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-red-950 text-red-300 border border-red-500/40">DISMISSED</span>;
       default:
-        return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">RECEIVED</span>;
+        return <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700">SUBMITTED</span>;
     }
+  };
+
+  const nextStatuses = (status: ComplaintItem['status']) => {
+    if (status === 'SUBMITTED') return ['UNDER_REVIEW', 'DISMISSED'];
+    if (status === 'UNDER_REVIEW') return ['INVESTIGATING', 'DISMISSED'];
+    if (status === 'INVESTIGATING') return ['RESOLVED', 'DISMISSED'];
+    return [];
   };
 
   if (isLoading && complaints.length === 0) {
@@ -99,7 +107,7 @@ export const ComplaintsPage: React.FC = () => {
                   <th className="p-4">Complaint ID</th>
                   <th className="p-4">Tracking Token</th>
                   <th className="p-4">Category</th>
-                  <th className="p-4">Location</th>
+                  <th className="p-4">Public Verification ID</th>
                   <th className="p-4">Status</th>
                   <th className="p-4">Date</th>
                   <th className="p-4 text-right">Actions</th>
@@ -111,17 +119,17 @@ export const ComplaintsPage: React.FC = () => {
                     <td className="p-4 font-mono font-bold text-slate-100">{c.complaintId}</td>
                     <td className="p-4 font-mono text-teal-400">{c.trackingToken}</td>
                     <td className="p-4">{c.category}</td>
-                    <td className="p-4">{c.city}, {c.state}</td>
+                    <td className="p-4 font-mono text-slate-300">{c.publicVerificationId}</td>
                     <td className="p-4">{getStatusBadge(c.status)}</td>
                     <td className="p-4 font-mono text-slate-400">
-                      {c.createdAt ? new Date(c.createdAt).toLocaleDateString() : 'N/A'}
+                      {c.submittedAt ? new Date(c.submittedAt).toLocaleDateString() : 'N/A'}
                     </td>
                     <td className="p-4 text-right">
                       <button
                         onClick={() => {
                           setSelectedComplaint(c);
-                          setUpdateStatus(c.status);
-                          setRemarks(c.remarks || '');
+                          setUpdateStatus(nextStatuses(c.status)[0] || c.status);
+                          setRemarks('');
                           setResolutionSummary(c.resolutionSummary || '');
                         }}
                         className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition-colors"
@@ -156,12 +164,12 @@ export const ComplaintsPage: React.FC = () => {
                   <span className="font-semibold text-slate-200">{selectedComplaint.category}</span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 block">Business / Device</span>
-                  <span className="font-semibold text-slate-200">{selectedComplaint.businessName || selectedComplaint.instrumentId || 'N/A'}</span>
+                  <span className="text-[10px] text-slate-400 block">Public Verification ID</span>
+                  <span className="font-mono text-slate-200">{selectedComplaint.publicVerificationId}</span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 block">Location</span>
-                  <span className="font-semibold text-slate-200">{selectedComplaint.city}, {selectedComplaint.state}</span>
+                  <span className="text-[10px] text-slate-400 block">Submitted</span>
+                  <span className="font-semibold text-slate-200">{new Date(selectedComplaint.submittedAt).toLocaleString()}</span>
                 </div>
                 <div>
                   <span className="text-[10px] text-slate-400 block">Tracking Token</span>
@@ -186,10 +194,9 @@ export const ComplaintsPage: React.FC = () => {
                       onChange={(e) => setUpdateStatus(e.target.value)}
                       className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
                     >
-                      <option value="RECEIVED">RECEIVED</option>
-                      <option value="UNDER_INVESTIGATION">UNDER_INVESTIGATION</option>
-                      <option value="RESOLVED">RESOLVED</option>
-                      <option value="REJECTED">REJECTED</option>
+                      {nextStatuses(selectedComplaint.status).map((status) => (
+                        <option key={status} value={status}>{status}</option>
+                      ))}
                     </select>
                   </div>
 
@@ -218,10 +225,10 @@ export const ComplaintsPage: React.FC = () => {
                   <div className="flex gap-2 pt-2">
                     <button
                       type="submit"
-                      disabled={isUpdating}
+                      disabled={isUpdating || nextStatuses(selectedComplaint.status).length === 0}
                       className="flex-1 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 disabled:opacity-50 text-xs font-bold text-white transition-colors"
                     >
-                      {isUpdating ? 'Saving...' : 'Save Resolution'}
+                      {isUpdating ? 'Saving...' : nextStatuses(selectedComplaint.status).length ? 'Save Resolution' : 'Complaint Closed'}
                     </button>
                     <button
                       type="button"

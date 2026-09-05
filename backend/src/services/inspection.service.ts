@@ -35,6 +35,7 @@ export interface ListInspectionsQuery {
   inspectorId?: string;
   instrumentId?: string;
   verificationRequestId?: string;
+  inspectorResult?: 'PASS' | 'FAIL';
 }
 
 export class InspectionService {
@@ -454,6 +455,9 @@ export class InspectionService {
     const filter: Record<string, any> = {
       status: 'FINALIZED'
     };
+    if (query.inspectorResult && ['PASS', 'FAIL'].includes(query.inspectorResult)) {
+      filter.inspectorResult = query.inspectorResult;
+    }
 
     if (caller.role === 'OWNER') {
       const ownedInstruments = await Instrument.find({ owner: caller._id }).select('_id instrumentId');

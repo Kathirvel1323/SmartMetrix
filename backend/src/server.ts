@@ -8,18 +8,29 @@ import { connectDB } from './config/db';
 
 const PORT = process.env.PORT || 5000;
 
-// Connect to MongoDB
-connectDB();
+let server: ReturnType<typeof app.listen> | undefined;
 
-// Start HTTP Server
-const server = app.listen(PORT, () => {
-  console.log(`[SmartMetrix] Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
-  console.log(`[SmartMetrix] Health endpoint available at http://localhost:${PORT}/api/health`);
-});
+const startServer = async () => {
+  try {
+    await connectDB();
+    server = app.listen(PORT, () => {
+      console.log(`[SmartMetrix] Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+      console.log(`[SmartMetrix] Health endpoint available at http://localhost:${PORT}/api/health`);
+    });
+  } catch (error: any) {
+    console.error(`[SmartMetrix] Startup aborted: ${error?.message || 'Database connection failed'}`);
+    process.exit(1);
+  }
+};
+
+void startServer();
 
 // Handle graceful shutdown
 const gracefulShutdown = () => {
   console.log('\n[SmartMetrix] Received shutdown signal. Closing server...');
+  if (!server) {
+    process.exit(0);
+  }
   server.close(() => {
     console.log('[SmartMetrix] HTTP server closed.');
     process.exit(0);

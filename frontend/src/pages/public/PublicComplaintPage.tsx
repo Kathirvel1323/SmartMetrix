@@ -7,13 +7,10 @@ import { Link } from 'react-router-dom';
 
 export const PublicComplaintPage: React.FC = () => {
   const [formData, setFormData] = useState<PublicComplaintPayload>({
-    instrumentId: '',
-    businessName: '',
-    city: '',
-    state: '',
-    category: 'WEIGHING_SCALE',
+    publicVerificationId: '',
+    category: 'ACCURACY_DOUBT',
     description: '',
-    contactEmail: ''
+    complainantContact: ''
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -22,8 +19,8 @@ export const PublicComplaintPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.city || !formData.state || !formData.description) {
-      setError('Please fill in required fields (City, State, Description).');
+    if (!formData.publicVerificationId.trim() || formData.description.trim().length < 10) {
+      setError('Public verification ID and a detailed description (minimum 10 characters) are required.');
       return;
     }
     setIsSubmitting(true);
@@ -94,30 +91,20 @@ export const PublicComplaintPage: React.FC = () => {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-slate-300 font-semibold mb-1">Business Name (Optional)</label>
-                  <input
-                    type="text"
-                    value={formData.businessName}
-                    onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
-                    placeholder="e.g. Metro Fuel Station #12"
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-300 font-semibold mb-1">Instrument ID / Serial (Optional)</label>
-                  <input
-                    type="text"
-                    value={formData.instrumentId}
-                    onChange={(e) => setFormData({ ...formData, instrumentId: e.target.value })}
-                    placeholder="e.g. INS-2026-99"
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
-                  />
-                </div>
+              <div>
+                <label className="block text-slate-300 font-semibold mb-1">Public Verification ID *</label>
+                <input
+                  type="text"
+                  required
+                  value={formData.publicVerificationId}
+                  onChange={(e) => setFormData({ ...formData, publicVerificationId: e.target.value })}
+                  placeholder="UUID shown on the public certificate"
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
+                />
+                <p className="mt-1 text-[10px] text-slate-500">This securely links the complaint to the certified instrument without collecting owner or location data.</p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
                 <div>
                   <label className="block text-slate-300 font-semibold mb-1">Category *</label>
                   <select
@@ -125,35 +112,12 @@ export const PublicComplaintPage: React.FC = () => {
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                     className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
                   >
-                    <option value="WEIGHING_SCALE">Weighing Scale</option>
-                    <option value="FUEL_DISPENSER">Fuel Dispenser</option>
-                    <option value="TAXI_METER">Taxi Meter</option>
-                    <option value="STORAGE_TANK">Storage Tank</option>
-                    <option value="FLOW_METER">Flow Meter</option>
-                    <option value="OTHER">Other Metrology Device</option>
+                    <option value="ACCURACY_DOUBT">Accuracy Doubt</option>
+                    <option value="SEAL_BROKEN">Broken Seal</option>
+                    <option value="EXPIRED_CERTIFICATE">Expired Certificate</option>
+                    <option value="TAMPERING_SUSPECTED">Suspected Tampering</option>
+                    <option value="OTHER">Other</option>
                   </select>
-                </div>
-                <div>
-                  <label className="block text-slate-300 font-semibold mb-1">City *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.city}
-                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    placeholder="e.g. Mumbai"
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-slate-300 font-semibold mb-1">State *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.state}
-                    onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                    placeholder="e.g. Maharashtra"
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
-                  />
                 </div>
               </div>
 
@@ -170,14 +134,15 @@ export const PublicComplaintPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-slate-300 font-semibold mb-1">Contact Email (Optional for updates)</label>
+                <label className="block text-slate-300 font-semibold mb-1">Contact Details (Optional)</label>
                 <input
-                  type="email"
-                  value={formData.contactEmail}
-                  onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
-                  placeholder="consumer@example.com"
+                  type="text"
+                  value={formData.complainantContact}
+                  onChange={(e) => setFormData({ ...formData, complainantContact: e.target.value })}
+                  placeholder="Email or phone number"
                   className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
                 />
+                <p className="mt-1 text-[10px] text-slate-500">Optional contact details are encrypted by the backend using AES-256-GCM.</p>
               </div>
 
               <button

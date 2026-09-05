@@ -6,6 +6,7 @@ import { Badge } from '../../components/ui/Badge';
 
 export const SettingsPage: React.FC = () => {
   const { user } = useAuth();
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'Not configured';
 
   return (
     <div className="space-y-6">
@@ -41,11 +42,11 @@ export const SettingsPage: React.FC = () => {
           <div className="space-y-3 text-xs">
             <div className="flex justify-between py-2 border-b border-slate-800">
               <span className="text-slate-400">API Gateway Base URL:</span>
-              <span className="font-mono text-teal-400">http://localhost:5000/api</span>
+              <span className="font-mono text-teal-400 break-all">{apiBaseUrl}</span>
             </div>
             <div className="flex justify-between py-2 border-b border-slate-800">
               <span className="text-slate-400">FastAPI AI Service:</span>
-              <span className="font-mono text-purple-400">http://localhost:8000</span>
+              <span className="font-mono text-purple-400">Connected through backend gateway</span>
             </div>
             <div className="flex justify-between py-2 border-b border-slate-800">
               <span className="text-slate-400">HMAC Integrity Hash:</span>

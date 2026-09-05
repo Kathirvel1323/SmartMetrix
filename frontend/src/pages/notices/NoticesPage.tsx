@@ -174,9 +174,8 @@ export const NoticesPage: React.FC = () => {
                     </div>
                     <h4 className="text-sm font-bold text-slate-100">
                       {typeof notice.instrument === 'object' && notice.instrument !== null
-                        ? (notice.instrument as any).name ||
-                          (notice.instrument as any).instrumentId ||
-                          'Unknown Instrument'
+                        ? `${(notice.instrument as any).manufacturer || ''} ${(notice.instrument as any).model || ''}`.trim() ||
+                          (notice.instrument as any).instrumentId || 'Unknown Instrument'
                         : String(notice.instrument)}
                     </h4>
                     <p className="text-xs text-slate-300 mt-1">{notice.reason}</p>

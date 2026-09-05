@@ -34,12 +34,15 @@ export class SearchService {
       : ['instruments', 'verifications', 'inspections', 'certificates', 'complaints', 'improvement-notices'];
 
     const userId = user.id || user._id;
+    const ownedInstrumentIds = user.role === 'OWNER'
+      ? await Instrument.find({ owner: userId }).distinct('_id')
+      : [];
 
     // 1. Instruments
     if (entityTypes.includes('instruments')) {
       const filter: any = {};
       if (user.role === 'OWNER') {
-        filter.$or = [{ owner: userId }, { ownerId: String(userId) }];
+        filter.owner = userId;
       }
       if (query.city) filter['location.city'] = query.city;
       if (query.status) filter.status = query.status;
@@ -54,9 +57,9 @@ export class SearchService {
             { category: regex }
           ]
         };
-        if (filter.$or) {
-          filter.$and = [{ $or: filter.$or }, textFilter];
-          delete filter.$or;
+        if (filter.owner) {
+          filter.$and = [{ owner: filter.owner }, textFilter];
+          delete filter.owner;
         } else {
           filter.$or = textFilter.$or;
         }
@@ -67,22 +70,21 @@ export class SearchService {
     // 2. Verifications
     if (entityTypes.includes('verifications')) {
       const filter: any = {};
-      if (user.role === 'OWNER') filter.$or = [{ owner: userId }, { ownerId: String(userId) }];
-      if (user.role === 'INSPECTOR') filter.$or = [{ inspector: userId }, { inspectorId: String(userId) }, { assignedInspector: userId }, { assignedInspectorId: String(userId) }];
-      if (query.city) filter['location.city'] = query.city;
+      if (user.role === 'OWNER') filter.owner = userId;
+      if (user.role === 'INSPECTOR') filter.assignedInspector = userId;
       if (query.status) filter.status = query.status;
 
       if (regex) {
         const textFilter = {
           $or: [
             { requestId: regex },
-            { instrumentId: regex },
             { verificationType: regex }
           ]
         };
-        if (filter.$or) {
-          filter.$and = [{ $or: filter.$or }, textFilter];
-          delete filter.$or;
+        const scopeEntries = Object.entries(filter);
+        if (scopeEntries.length > 0) {
+          filter.$and = [Object.fromEntries(scopeEntries), textFilter];
+          for (const key of Object.keys(filter)) if (key !== '$and') delete filter[key];
         } else {
           filter.$or = textFilter.$or;
         }
@@ -93,21 +95,22 @@ export class SearchService {
     // 3. Inspections
     if (entityTypes.includes('inspections')) {
       const filter: any = {};
-      if (user.role === 'OWNER') filter.$or = [{ owner: userId }, { ownerId: String(userId) }];
-      if (user.role === 'INSPECTOR') filter.$or = [{ inspector: userId }, { inspectorId: String(userId) }];
-      if (query.status) filter.overallResult = query.status;
+      if (user.role === 'OWNER') filter.instrument = { $in: ownedInstrumentIds };
+      if (user.role === 'INSPECTOR') filter.inspector = userId;
+      if (query.status) filter.inspectorResult = query.status;
 
       if (regex) {
         const textFilter = {
           $or: [
             { inspectionId: regex },
-            { requestId: regex },
-            { instrumentId: regex }
+            { remarks: regex },
+            { potentialTamperingIndicators: regex }
           ]
         };
-        if (filter.$or) {
-          filter.$and = [{ $or: filter.$or }, textFilter];
-          delete filter.$or;
+        const scopeEntries = Object.entries(filter);
+        if (scopeEntries.length > 0) {
+          filter.$and = [Object.fromEntries(scopeEntries), textFilter];
+          for (const key of Object.keys(filter)) if (key !== '$and') delete filter[key];
         } else {
           filter.$or = textFilter.$or;
         }
@@ -118,20 +121,22 @@ export class SearchService {
     // 4. Certificates
     if (entityTypes.includes('certificates')) {
       const filter: any = {};
-      if (user.role === 'OWNER') filter.$or = [{ owner: userId }, { ownerId: String(userId) }];
+      if (user.role === 'OWNER') filter.owner = userId;
       if (query.status) filter.status = query.status;
 
       if (regex) {
         const textFilter = {
           $or: [
-            { certificateId: regex },
-            { instrumentId: regex },
-            { publicVerificationId: regex }
+            { certificateNumber: regex },
+            { publicVerificationId: regex },
+            { 'instrumentSnapshot.instrumentId': regex },
+            { 'instrumentSnapshot.manufacturer': regex },
+            { 'instrumentSnapshot.model': regex }
           ]
         };
-        if (filter.$or) {
-          filter.$and = [{ $or: filter.$or }, textFilter];
-          delete filter.$or;
+        if (filter.owner) {
+          filter.$and = [{ owner: filter.owner }, textFilter];
+          delete filter.owner;
         } else {
           filter.$or = textFilter.$or;
         }
@@ -140,17 +145,24 @@ export class SearchService {
     }
 
     // 5. Complaints
-    if (entityTypes.includes('complaints') && user.role !== 'OWNER') {
+    if (entityTypes.includes('complaints')) {
       const filter: any = {};
-      if (user.role === 'INSPECTOR') filter.assignedInspectorId = String(userId);
+      if (user.role === 'OWNER') filter.instrument = { $in: ownedInstrumentIds };
+      if (user.role === 'INSPECTOR') filter.assignedTo = userId;
       if (query.status) filter.status = query.status;
       if (regex) {
         filter.$or = [
           { complaintId: regex },
-          { instrumentId: regex },
-          { city: regex },
-          { category: regex }
+          { publicVerificationId: regex },
+          { category: regex },
+          { description: regex }
         ];
+        const scopeEntries = Object.entries(filter).filter(([key]) => key !== '$or');
+        if (scopeEntries.length > 0) {
+          const textFilter = { $or: filter.$or };
+          filter.$and = [Object.fromEntries(scopeEntries), textFilter];
+          for (const key of Object.keys(filter)) if (key !== '$and') delete filter[key];
+        }
       }
       results.complaints = await Complaint.find(filter).skip(skip).limit(limit).lean();
     }
@@ -158,14 +170,21 @@ export class SearchService {
     // 6. Improvement Notices
     if (entityTypes.includes('improvement-notices')) {
       const filter: any = {};
-      if (user.role === 'OWNER') filter.issuedToOwnerId = String(userId);
-      if (user.role === 'INSPECTOR') filter.issuedByInspectorId = String(userId);
+      if (user.role === 'OWNER') filter.instrument = { $in: ownedInstrumentIds };
+      if (user.role === 'INSPECTOR') filter.issuedBy = userId;
       if (query.status) filter.status = query.status;
       if (regex) {
         filter.$or = [
           { noticeId: regex },
-          { instrumentId: regex }
+          { reason: regex },
+          { requiredCorrection: regex }
         ];
+        const scopeEntries = Object.entries(filter).filter(([key]) => key !== '$or');
+        if (scopeEntries.length > 0) {
+          const textFilter = { $or: filter.$or };
+          filter.$and = [Object.fromEntries(scopeEntries), textFilter];
+          for (const key of Object.keys(filter)) if (key !== '$and') delete filter[key];
+        }
       }
       results.improvementNotices = await ImprovementNotice.find(filter).skip(skip).limit(limit).lean();
     }

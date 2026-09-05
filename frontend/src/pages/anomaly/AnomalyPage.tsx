@@ -118,7 +118,7 @@ export const AnomalyPage: React.FC = () => {
                     <Badge variant="info">{methodLabel(item.method)}</Badge>
                   </div>
                   <h3 className="text-sm font-bold text-slate-100">
-                    {item.instrument?.name || item.instrumentIdSnapshot}
+                    {item.instrument ? `${item.instrument.manufacturer || ''} ${item.instrument.model || ''}`.trim() : item.instrumentIdSnapshot}
                   </h3>
                   <p className="text-xs text-slate-400 mt-0.5">
                     {item.instrument?.type || ''}

@@ -54,7 +54,7 @@ export const VerificationPage: React.FC = () => {
     switch (status) {
       case 'PASSED':
         return 'pass';
-      case 'REJECTED':
+      case 'FAILED':
         return 'fail';
       case 'SCHEDULED':
       case 'ASSIGNED':
@@ -77,8 +77,8 @@ export const VerificationPage: React.FC = () => {
       header: 'Instrument',
       accessor: (item) => (
         <div>
-          <div className="font-semibold text-slate-100">{item.instrumentId?.name || 'Measuring Scale'}</div>
-          <div className="text-xs text-slate-400">ID: {item.instrumentId?.instrumentId || 'N/A'}</div>
+          <div className="font-semibold text-slate-100">{item.instrument?.manufacturer} {item.instrument?.model}</div>
+          <div className="text-xs text-slate-400">ID: {item.instrument?.instrumentId || 'N/A'}</div>
         </div>
       ),
     },
@@ -92,7 +92,7 @@ export const VerificationPage: React.FC = () => {
       header: 'Assigned Inspector',
       accessor: (item) => (
         <span className="text-xs text-slate-300">
-          {item.assignedInspectorId?.name || 'Unassigned'}
+          {item.assignedInspector?.name || 'Unassigned'}
         </span>
       ),
     },
@@ -119,7 +119,7 @@ export const VerificationPage: React.FC = () => {
             </Button>
           )}
 
-          {(user?.role === 'INSPECTOR' || user?.role === 'ADMIN') && (item.status === 'SCHEDULED' || item.status === 'ASSIGNED') && (
+          {user?.role === 'INSPECTOR' && item.status === 'SCHEDULED' && (
             <Button
               variant="primary"
               size="sm"
@@ -167,7 +167,8 @@ export const VerificationPage: React.FC = () => {
               { label: 'Assigned', value: 'ASSIGNED' },
               { label: 'Scheduled', value: 'SCHEDULED' },
               { label: 'Passed', value: 'PASSED' },
-              { label: 'Rejected', value: 'REJECTED' },
+              { label: 'Failed', value: 'FAILED' },
+              { label: 'Certificate Issued', value: 'CERTIFICATE_ISSUED' },
             ]}
             className="w-full sm:w-64"
           />

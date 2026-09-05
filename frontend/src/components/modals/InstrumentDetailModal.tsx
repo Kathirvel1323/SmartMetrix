@@ -58,7 +58,7 @@ export const InstrumentDetailModal: React.FC<InstrumentDetailModalProps> = ({
       maxWidth="3xl"
     >
       {isLoading ? (
-        <LoadingState message="Fetching Digital Passport data from blockchain ledger..." />
+        <LoadingState message="Fetching Digital Passport data from the SmartMetrix registry..." />
       ) : instrument ? (
         <div className="space-y-6">
           {/* Header Badge Box */}
@@ -71,16 +71,16 @@ export const InstrumentDetailModal: React.FC<InstrumentDetailModalProps> = ({
                 <span className="text-xs font-mono text-teal-400 font-bold uppercase tracking-wider">
                   ID: {instrument.instrumentId}
                 </span>
-                <h2 className="text-xl font-bold text-white tracking-tight">{instrument.name}</h2>
+                <h2 className="text-xl font-bold text-white tracking-tight">{instrument.manufacturer} {instrument.model}</h2>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  {instrument.manufacturer} • Model: {instrument.modelNumber}
+                  Serial: {instrument.serialNumber}
                 </p>
               </div>
             </div>
 
             <div className="flex flex-col items-end gap-1.5">
-              <Badge variant={instrument.verificationStatus === 'VERIFIED' ? 'pass' : 'pending'}>
-                {instrument.verificationStatus || 'PENDING'}
+              <Badge variant={instrument.status === 'ACTIVE' ? 'pass' : 'pending'}>
+                {instrument.status}
               </Badge>
               <span className="text-[10px] text-slate-400 font-mono">
                 Issued: {instrument.createdAt ? new Date(instrument.createdAt).toLocaleDateString() : 'Active'}
@@ -111,7 +111,7 @@ export const InstrumentDetailModal: React.FC<InstrumentDetailModalProps> = ({
                 <div className="flex justify-between py-1">
                   <span className="text-slate-500">Max Capacity:</span>
                   <span className="font-semibold text-emerald-400">
-                    {instrument.capacityValue} {instrument.capacityUnit}
+                    {instrument.capacity?.value} {instrument.capacity?.unit}
                   </span>
                 </div>
               </div>
@@ -142,9 +142,9 @@ export const InstrumentDetailModal: React.FC<InstrumentDetailModalProps> = ({
                 <div className="flex justify-between py-1">
                   <span className="text-slate-500">GPS Coordinates:</span>
                   <span className="font-mono text-xs text-sky-400">
-                    {instrument.location?.coordinates
-                      ? `${instrument.location.coordinates[0]}, ${instrument.location.coordinates[1]}`
-                      : '19.076, 72.877'}
+                    {instrument.location?.coordinates?.coordinates
+                      ? `${instrument.location.coordinates.coordinates[1]}, ${instrument.location.coordinates.coordinates[0]}`
+                      : 'Not recorded'}
                   </span>
                 </div>
               </div>

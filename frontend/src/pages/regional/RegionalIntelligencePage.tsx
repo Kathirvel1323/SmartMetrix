@@ -8,6 +8,7 @@ import { LoadingState } from '../../components/ui/LoadingState';
 import { ErrorState } from '../../components/ui/ErrorState';
 import { MapContainer, TileLayer, Marker, Popup, Circle } from 'react-leaflet';
 import { RefreshCw, Map, Users, Info } from 'lucide-react';
+import '../../utils/leaflet-icons';
 
 type BadgeVariant = 'pass' | 'fail' | 'pending' | 'info';
 
@@ -74,7 +75,7 @@ export const RegionalIntelligencePage: React.FC = () => {
           name: feature.properties?.name || feature.properties?.instrumentId || 'Instrument',
           instrumentId: feature.properties?.instrumentId || '',
           type: feature.properties?.type || '',
-          status: feature.properties?.verificationStatus || '',
+          status: feature.properties?.status || '',
         });
       }
     }
@@ -184,7 +185,6 @@ export const RegionalIntelligencePage: React.FC = () => {
               ))}
             </MapContainer>
           ) : (
-            /* Fallback static map when no GeoJSON instruments exist */
             <MapContainer
               center={[20.5937, 78.9629]}
               zoom={5}
@@ -195,14 +195,6 @@ export const RegionalIntelligencePage: React.FC = () => {
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
-              <Marker position={[19.076, 72.8777]}>
-                <Popup>
-                  <div className="p-1 font-sans">
-                    <h4 className="font-bold text-slate-100">Mumbai Zone</h4>
-                    <p className="text-xs text-slate-300">Generate demo data to see live instruments.</p>
-                  </div>
-                </Popup>
-              </Marker>
               <Circle
                 center={[20.5937, 78.9629]}
                 radius={500000}

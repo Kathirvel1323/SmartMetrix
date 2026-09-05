@@ -75,15 +75,15 @@ export const RiskIntelligencePage: React.FC = () => {
   const factorChartData = activeConfig
     ? Object.entries(activeConfig.weights).map(([key, weight]) => ({
         factor: key.replace(/_/g, ' '),
-        weight: Math.round(weight * 100),
+        weight: Number(weight),
       }))
     : [];
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="AI Risk Intelligence & Anomaly Scoring"
-        subtitle="Explainable Isolation Forest risk matrix with configurable factor weightings and trust scoring."
+        title="Risk & Trust Intelligence"
+        subtitle="Explainable configurable risk factors and an independently calculated trust score."
         breadcrumbs={[{ label: 'SmartMetrix' }, { label: 'Risk Intelligence' }]}
         action={
           <Button
@@ -173,7 +173,7 @@ export const RiskIntelligencePage: React.FC = () => {
       {/* Priority List */}
       <Card
         title="Instrument Risk Priority Queue"
-        subtitle="Instruments ranked by latest AI risk assessment score — decision support only. Final PASS/FAIL authority remains with the authorized Inspector/LMO."
+        subtitle="Instruments ranked by their latest explainable risk assessment — decision support only. Final PASS/FAIL authority remains with the authorized Inspector/LMO."
       >
         {priorities.length === 0 ? (
           <div className="py-12 text-center text-slate-400 space-y-2">
@@ -203,7 +203,7 @@ export const RiskIntelligencePage: React.FC = () => {
                     </Badge>
                   </div>
                   <p className="text-sm font-semibold text-slate-100 truncate">
-                    {item.instrument?.name || item.instrumentIdSnapshot}
+                    {item.instrument ? `${item.instrument.manufacturer || ''} ${item.instrument.model || ''}`.trim() : item.instrumentIdSnapshot}
                   </p>
                   <p className="text-xs text-slate-400 truncate">
                     {item.instrument?.location?.city

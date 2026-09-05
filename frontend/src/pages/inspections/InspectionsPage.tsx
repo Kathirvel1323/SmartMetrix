@@ -26,7 +26,7 @@ export const InspectionsPage: React.FC = () => {
     setIsLoading(true);
     try {
       const res = await inspectionService.getInspections({
-        result: resultFilter,
+        inspectorResult: resultFilter as 'PASS' | 'FAIL' | '',
         page,
         limit: 10,
       });
@@ -54,20 +54,20 @@ export const InspectionsPage: React.FC = () => {
     {
       header: 'Instrument',
       accessor: (item) => (
-        <span className="font-semibold text-slate-100">{item.instrumentId?.name || 'Weighing Scale'}</span>
+        <span className="font-semibold text-slate-100">{item.instrument?.manufacturer} {item.instrument?.model || item.instrumentIdSnapshot}</span>
       ),
     },
     {
       header: 'Result',
       accessor: (item) => (
-        <Badge variant={item.result === 'PASS' ? 'pass' : 'fail'}>{item.result}</Badge>
+        <Badge variant={item.inspectorResult === 'PASS' ? 'pass' : 'fail'}>{item.inspectorResult}</Badge>
       ),
     },
     {
       header: 'Deviation',
       accessor: (item) => (
         <span className="font-mono text-xs text-slate-300">
-          {item.deviationValue !== undefined ? `${item.deviationValue} ${item.deviationUnit || 'kg'}` : '0.00'}
+          {item.deviation} {item.toleranceSnapshot?.capacityUnit}
         </span>
       ),
     },
@@ -76,7 +76,7 @@ export const InspectionsPage: React.FC = () => {
       accessor: (item) => (
         <span className="text-xs text-slate-400 flex items-center gap-1 font-mono">
           <MapPin className="w-3 h-3 text-teal-400" />
-          {item.gpsLocation?.latitude?.toFixed(2)}, {item.gpsLocation?.longitude?.toFixed(2)}
+          {item.gps?.coordinates ? `${item.gps.coordinates[1].toFixed(2)}, ${item.gps.coordinates[0].toFixed(2)}` : 'Not captured'}
         </span>
       ),
     },
@@ -102,7 +102,7 @@ export const InspectionsPage: React.FC = () => {
     <div>
       <PageHeader
         title="Field Inspection Audit Trail"
-        subtitle="Completed field measurements, calculated tolerance deviations & HMAC tamper seals."
+        subtitle="Completed field measurements, configured tolerance calculations and finalized inspection records."
         breadcrumbs={[{ label: 'SmartMetrix' }, { label: 'Inspections' }]}
       />
 
@@ -118,7 +118,6 @@ export const InspectionsPage: React.FC = () => {
               { label: 'All Results', value: '' },
               { label: 'Pass', value: 'PASS' },
               { label: 'Fail', value: 'FAIL' },
-              { label: 'Inconclusive', value: 'INCONCLUSIVE' },
             ]}
             className="w-full sm:w-64"
           />

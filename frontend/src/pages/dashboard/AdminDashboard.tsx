@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { analyticsService } from '../../services/analytics.service';
 import { demoService } from '../../services/demo.service';
+import { regionalService } from '../../services/regional.service';
 import { StatCard } from '../../components/ui/StatCard';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
@@ -12,12 +13,14 @@ import { Scale, ClipboardCheck, ShieldCheck, AlertOctagon, Zap, RefreshCw, MapPi
 import { ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area, XAxis, YAxis, Tooltip, Legend } from 'recharts';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { Link } from 'react-router-dom';
+import '../../utils/leaflet-icons';
 
 export const AdminDashboard: React.FC = () => {
   const [kpis, setKpis] = useState<any>(null);
   const [riskData, setRiskData] = useState<any[]>([]);
   const [trendData, setTrendData] = useState<any[]>([]);
   const [priorityInspections, setPriorityInspections] = useState<any[]>([]);
+  const [mapMarkers, setMapMarkers] = useState<Array<{ id: string; lat: number; lon: number; label: string }>>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isGeneratingDemo, setIsGeneratingDemo] = useState(false);
@@ -27,17 +30,25 @@ export const AdminDashboard: React.FC = () => {
     setIsLoading(true);
     setError('');
     try {
-      const [kpiRes, riskRes, trendRes, priorityRes] = await Promise.allSettled([
+      const [kpiRes, riskRes, trendRes, priorityRes, mapRes] = await Promise.allSettled([
         analyticsService.getDashboardKpis(),
         analyticsService.getRiskDistribution(),
         analyticsService.getPassFailTrends(),
         analyticsService.getPriorityInspections(),
+        regionalService.getMapData(),
       ]);
 
       if (kpiRes.status === 'fulfilled') setKpis(kpiRes.value);
       if (riskRes.status === 'fulfilled') setRiskData(riskRes.value || []);
       if (trendRes.status === 'fulfilled') setTrendData(trendRes.value || []);
       if (priorityRes.status === 'fulfilled') setPriorityInspections(priorityRes.value || []);
+      if (mapRes.status === 'fulfilled' && mapRes.value?.features) {
+        setMapMarkers(mapRes.value.features.flatMap((feature: any) => {
+          if (feature.geometry?.type !== 'Point' || feature.geometry.coordinates?.length !== 2) return [];
+          const [lon, lat] = feature.geometry.coordinates;
+          return [{ id: feature.properties?.instrumentId || `${lat}-${lon}`, lat, lon, label: feature.properties?.instrumentId || 'Instrument' }];
+        }));
+      }
     } catch (err: any) {
       setError('Unable to retrieve admin analytics data from the server.');
     } finally {
@@ -221,15 +232,11 @@ export const AdminDashboard: React.FC = () => {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            <Marker position={[19.076, 72.8777]}>
-              <Popup>Mumbai Central Legal Metrology Zone</Popup>
-            </Marker>
-            <Marker position={[28.6139, 77.209]}>
-              <Popup>Delhi Capital Verification Division</Popup>
-            </Marker>
-            <Marker position={[12.9716, 77.5946]}>
-              <Popup>Bengaluru Tech Inspection Zone</Popup>
-            </Marker>
+            {mapMarkers.map((marker) => (
+              <Marker key={marker.id} position={[marker.lat, marker.lon]}>
+                <Popup>{marker.label}</Popup>
+              </Marker>
+            ))}
           </MapContainer>
         </div>
       </Card>
@@ -241,11 +248,11 @@ export const AdminDashboard: React.FC = () => {
             {priorityInspections.slice(0, 5).map((item, idx) => (
               <div key={idx} className="py-3 flex items-center justify-between">
                 <div>
-                  <h4 className="text-sm font-semibold text-slate-100">{item.name || item.instrumentId}</h4>
-                  <p className="text-xs text-slate-400">{item.location?.city || item.district || 'Regional Division'}</p>
+                  <h4 className="text-sm font-semibold text-slate-100">{item.requestId}</h4>
+                  <p className="text-xs text-slate-400">{item.instrument?.instrumentId || 'Instrument'} · {item.instrument?.manufacturer} {item.instrument?.model}</p>
                 </div>
-                <Badge variant={item.riskLevel === 'HIGH' ? 'fail' : 'pending'}>
-                  {item.riskLevel || 'HIGH RISK'}
+                <Badge variant={item.status === 'SCHEDULED' ? 'scheduled' : 'pending'}>
+                  {item.status}
                 </Badge>
               </div>
             ))}

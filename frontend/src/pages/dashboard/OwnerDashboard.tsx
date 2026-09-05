@@ -35,7 +35,7 @@ export const OwnerDashboard: React.FC = () => {
 
   if (isLoading) return <LoadingState message="Loading Establishment Assets & Certificates..." />;
 
-  const verifiedCount = instruments.filter((i) => i.verificationStatus === 'VERIFIED').length;
+  const verifiedCount = instruments.filter((i) => i.status === 'ACTIVE').length;
 
   return (
     <div className="space-y-6">
@@ -103,13 +103,13 @@ export const OwnerDashboard: React.FC = () => {
             {instruments.slice(0, 5).map((inst) => (
               <div key={inst._id} className="py-3 flex items-center justify-between">
                 <div>
-                  <h4 className="text-sm font-bold text-slate-100">{inst.name}</h4>
+                  <h4 className="text-sm font-bold text-slate-100">{inst.manufacturer} {inst.model}</h4>
                   <p className="text-xs text-slate-400">
                     {inst.type} • Serial: <span className="font-mono">{inst.serialNumber}</span>
                   </p>
                 </div>
-                <Badge variant={inst.verificationStatus === 'VERIFIED' ? 'pass' : 'pending'}>
-                  {inst.verificationStatus || 'PENDING'}
+                <Badge variant={inst.status === 'ACTIVE' ? 'pass' : 'pending'}>
+                  {inst.status}
                 </Badge>
               </div>
             ))}

@@ -121,46 +121,46 @@ export const phase7Service = {
     const response = await apiClient.post('/phase7/photo-assist/analyze', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
-    return response.data?.assessment || response.data;
+    return response.data?.data?.assessment;
   },
 
   async getLatestPhotoAssist(instrumentId: string): Promise<PhotoAssistAssessment | null> {
     const response = await apiClient.get(`/phase7/photo-assist/instruments/${instrumentId}/latest`);
-    return response.data?.assessment || response.data;
+    return response.data?.data?.assessment || null;
   },
 
   // 2. Predictive Trend Analysis
   async analyzePredictive(instrumentId: string): Promise<PredictiveAssessment> {
     const response = await apiClient.post(`/phase7/predictive/instruments/${instrumentId}/analyze`, {});
-    return response.data?.assessment || response.data;
+    return response.data?.data?.assessment;
   },
 
   async getLatestPredictive(instrumentId: string): Promise<PredictiveAssessment | null> {
     const response = await apiClient.get(`/phase7/predictive/instruments/${instrumentId}/latest`);
-    return response.data?.assessment || response.data;
+    return response.data?.data?.assessment || null;
   },
 
   // 3. Planning Twin & Burden Optimization
   async getPlanningTwin(instrumentId: string): Promise<PlanningTwinRepresentation> {
     const response = await apiClient.get(`/phase7/planning/twin/${instrumentId}`);
-    return response.data?.twin || response.data;
+    return response.data?.data?.twin;
   },
 
   async optimizeBurden(instrumentId: string): Promise<BurdenOptimizeResponse> {
     const response = await apiClient.post('/phase7/planning/burden-optimize', { instrumentId });
-    return response.data;
+    return response.data?.data;
   },
 
   // 4. Geo-Scheduling
   async recommendGeoSchedule(instrumentId: string): Promise<GeoScheduleResponse> {
     const response = await apiClient.post('/phase7/planning/geo-schedule-recommend', { instrumentId });
-    return response.data;
+    return response.data?.data;
   },
 
   // 5. Verification Method Rules Management (ADMIN)
   async listVerificationRules(): Promise<VerificationMethodRule[]> {
     const response = await apiClient.get('/phase7/admin/verification-rules');
-    return response.data?.rules || response.data || [];
+    return response.data?.data?.rules || [];
   },
 
   async createVerificationRule(payload: {
@@ -172,11 +172,11 @@ export const phase7Service = {
     estimatedEffortHours?: number;
   }): Promise<VerificationMethodRule> {
     const response = await apiClient.post('/phase7/admin/verification-rules', payload);
-    return response.data?.rule || response.data;
+    return response.data?.data?.rule;
   },
 
   async deactivateVerificationRule(ruleId: string): Promise<VerificationMethodRule> {
     const response = await apiClient.post(`/phase7/admin/verification-rules/${ruleId}/deactivate`, {});
-    return response.data?.rule || response.data;
+    return response.data?.data?.rule;
   }
 };

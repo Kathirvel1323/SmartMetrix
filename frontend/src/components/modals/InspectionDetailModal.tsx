@@ -45,7 +45,7 @@ export const InspectionDetailModal: React.FC<InspectionDetailModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title="Field Inspection Audit Report"
-      subtitle="HMAC Cryptographically Sealed Official Legal Metrology Test Audit Record"
+      subtitle="Official Legal Metrology field inspection record"
       maxWidth="3xl"
     >
       {isLoading ? (
@@ -59,15 +59,15 @@ export const InspectionDetailModal: React.FC<InspectionDetailModalProps> = ({
                 ID: {inspection.inspectionId}
               </span>
               <h2 className="text-xl font-bold text-white tracking-tight">
-                {inspection.instrumentId?.name || 'Measuring Scale'}
+                {inspection.instrument?.manufacturer} {inspection.instrument?.model || inspection.instrumentIdSnapshot}
               </h2>
               <p className="text-xs text-slate-400 mt-0.5">
                 Logged at: {inspection.createdAt ? new Date(inspection.createdAt).toLocaleString() : 'Recent'}
               </p>
             </div>
 
-            <Badge variant={inspection.result === 'PASS' ? 'pass' : 'fail'}>
-              VERDICT: {inspection.result}
+            <Badge variant={inspection.inspectorResult === 'PASS' ? 'pass' : 'fail'}>
+              VERDICT: {inspection.inspectorResult}
             </Badge>
           </div>
 
@@ -76,21 +76,21 @@ export const InspectionDetailModal: React.FC<InspectionDetailModalProps> = ({
             <div className="p-3 bg-slate-900/60 rounded-lg border border-slate-800/80">
               <span className="text-[11px] text-slate-400 font-semibold uppercase">Reference Standard</span>
               <div className="text-lg font-mono font-bold text-slate-100 mt-1">
-                {inspection.referenceReading} {inspection.deviationUnit || 'kg'}
+                {inspection.referenceReading} {inspection.toleranceSnapshot?.capacityUnit}
               </div>
             </div>
 
             <div className="p-3 bg-slate-900/60 rounded-lg border border-slate-800/80">
               <span className="text-[11px] text-slate-400 font-semibold uppercase">Observed Field Reading</span>
               <div className="text-lg font-mono font-bold text-slate-100 mt-1">
-                {inspection.observedReading} {inspection.deviationUnit || 'kg'}
+                {inspection.actualReading} {inspection.toleranceSnapshot?.capacityUnit}
               </div>
             </div>
 
             <div className="p-3 bg-slate-900/60 rounded-lg border border-teal-500/30">
               <span className="text-[11px] text-teal-400 font-semibold uppercase">Tolerance Deviation</span>
               <div className="text-lg font-mono font-bold text-teal-300 mt-1">
-                {inspection.deviationValue !== undefined ? `${inspection.deviationValue} ${inspection.deviationUnit || 'kg'}` : '0.00'}
+                {inspection.deviation} {inspection.toleranceSnapshot?.capacityUnit}
               </div>
             </div>
           </div>
@@ -116,10 +116,10 @@ export const InspectionDetailModal: React.FC<InspectionDetailModalProps> = ({
                 GPS Geo-Tagging Location
               </h4>
               <p className="text-xs font-mono text-slate-300">
-                Latitude: {inspection.gpsLocation?.latitude?.toFixed(6) || '19.076000'}
+                Latitude: {inspection.gps?.coordinates ? inspection.gps.coordinates[1].toFixed(6) : 'Not captured'}
               </p>
               <p className="text-xs font-mono text-slate-300">
-                Longitude: {inspection.gpsLocation?.longitude?.toFixed(6) || '72.877700'}
+                Longitude: {inspection.gps?.coordinates ? inspection.gps.coordinates[0].toFixed(6) : 'Not captured'}
               </p>
             </div>
 
@@ -129,40 +129,40 @@ export const InspectionDetailModal: React.FC<InspectionDetailModalProps> = ({
                 Inspector Verification Credentials
               </h4>
               <p className="text-xs text-slate-300">
-                Inspector: <span className="font-semibold text-slate-100">{inspection.inspectorId?.name || 'Field Inspector'}</span>
+                Inspector: <span className="font-semibold text-slate-100">{inspection.inspector?.name || 'Not available'}</span>
               </p>
               <p className="text-xs text-slate-400">
-                Email: {inspection.inspectorId?.email || 'inspector@smartmetrix.gov.in'}
+                Email: {inspection.inspector?.email || 'Not available'}
               </p>
             </div>
           </div>
 
-          {/* Tamper Seal Box */}
+          {/* Stored audit record indicator */}
           <div className="p-4 bg-slate-900 border border-teal-500/40 rounded-xl flex items-center justify-between">
             <div className="flex items-center gap-3">
               <ShieldCheck className="w-6 h-6 text-emerald-400 shrink-0" />
               <div>
-                <h5 className="text-xs font-bold text-slate-100">Cryptographic Statutory Inspection Audit Record</h5>
+                <h5 className="text-xs font-bold text-slate-100">Stored Statutory Inspection Audit Record</h5>
                 <p className="text-[11px] text-slate-400 font-mono">
                   Official Verification ID: {inspection.inspectionId}
                 </p>
               </div>
             </div>
             <span className="px-2.5 py-1 bg-emerald-950 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold rounded-lg uppercase">
-              VALID SEAL
+              FINALIZED
             </span>
           </div>
 
           {/* Evidence Attachments */}
-          {inspection.evidencePhotos && inspection.evidencePhotos.length > 0 && (
+          {inspection.evidence && inspection.evidence.length > 0 && (
             <div className="space-y-2">
               <h4 className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
                 <Camera className="w-3.5 h-3.5 text-teal-400" />
-                Attached Evidence Files ({inspection.evidencePhotos.length})
+                Attached Evidence Files ({inspection.evidence.length})
               </h4>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                {inspection.evidencePhotos.map((_photo, idx) => (
-                  <div key={idx} className="p-2 bg-slate-950 border border-slate-800 rounded-lg text-center">
+                {inspection.evidence.map((file, idx) => (
+                  <div key={file.evidenceId} className="p-2 bg-slate-950 border border-slate-800 rounded-lg text-center">
                     <span className="text-[11px] text-teal-400 font-mono truncate block">
                       Attachment #{idx + 1}
                     </span>

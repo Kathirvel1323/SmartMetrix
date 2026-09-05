@@ -55,7 +55,10 @@ export const errorHandler = (
 
   // Internal diagnostic logging (safe from logging user passwords)
   if (statusCode >= 500) {
-    console.error(`[Server Error] ${statusCode}:`, err);
+    const safeError = process.env.NODE_ENV === 'production'
+      ? { name: err?.name || 'Error', message: err?.message || 'Internal server error' }
+      : err;
+    console.error(`[Server Error] ${statusCode}:`, safeError);
     // Generic message for unexpected 500 responses (do not expose raw err.message or stack trace)
     message = 'Internal server error';
   } else {

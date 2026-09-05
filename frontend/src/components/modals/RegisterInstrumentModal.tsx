@@ -18,19 +18,20 @@ export const RegisterInstrumentModal: React.FC<RegisterInstrumentModalProps> = (
   onSuccess,
 }) => {
   const [formData, setFormData] = useState({
-    name: '',
     type: 'WEIGHING_SCALE',
-    category: 'Commercial Weight Instrument',
+    category: 'NON_AUTOMATIC_WEIGHING',
     manufacturer: '',
-    modelNumber: '',
+    model: '',
     serialNumber: '',
-    capacityValue: '100',
+    capacityValue: '',
     capacityUnit: 'kg',
     address: '',
     city: '',
     district: '',
-    state: 'Maharashtra',
+    state: 'Tamil Nadu',
     pincode: '',
+    longitude: '',
+    latitude: '',
   });
 
   const [isLoading, setIsLoading] = useState(false);
@@ -49,21 +50,22 @@ export const RegisterInstrumentModal: React.FC<RegisterInstrumentModalProps> = (
 
     try {
       await instrumentService.registerInstrument({
-        name: formData.name,
         type: formData.type,
         category: formData.category,
         manufacturer: formData.manufacturer,
-        modelNumber: formData.modelNumber,
+        model: formData.model,
         serialNumber: formData.serialNumber,
-        capacityValue: Number(formData.capacityValue),
-        capacityUnit: formData.capacityUnit,
+        capacity: { value: Number(formData.capacityValue), unit: formData.capacityUnit },
         location: {
           address: formData.address,
           city: formData.city,
           district: formData.district,
           state: formData.state,
           pincode: formData.pincode,
-          coordinates: [19.076, 72.8777], // Default city centroid fallback
+          coordinates: {
+            type: 'Point',
+            coordinates: [Number(formData.longitude), Number(formData.latitude)],
+          },
         },
       });
 
@@ -103,14 +105,6 @@ export const RegisterInstrumentModal: React.FC<RegisterInstrumentModalProps> = (
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Input
-            label="Instrument Name *"
-            placeholder="e.g. Digital Weighbridge Scale #1"
-            value={formData.name}
-            onChange={(e) => handleChange('name', e.target.value)}
-            required
-          />
-
           <Select
             label="Instrument Class / Type *"
             value={formData.type}
@@ -134,8 +128,8 @@ export const RegisterInstrumentModal: React.FC<RegisterInstrumentModalProps> = (
           <Input
             label="Model Number *"
             placeholder="e.g. MT-8000-X"
-            value={formData.modelNumber}
-            onChange={(e) => handleChange('modelNumber', e.target.value)}
+            value={formData.model}
+            onChange={(e) => handleChange('model', e.target.value)}
             required
           />
 
@@ -186,10 +180,32 @@ export const RegisterInstrumentModal: React.FC<RegisterInstrumentModalProps> = (
               required
             />
             <Input
+              label="State *"
+              value={formData.state}
+              onChange={(e) => handleChange('state', e.target.value)}
+              required
+            />
+            <Input
               label="City *"
-              placeholder="e.g. Mumbai / Pune"
+              placeholder="e.g. Chennai / Coimbatore"
               value={formData.city}
               onChange={(e) => handleChange('city', e.target.value)}
+              required
+            />
+            <Input
+              label="Longitude *"
+              type="number"
+              value={formData.longitude}
+              onChange={(e) => handleChange('longitude', e.target.value)}
+              placeholder="e.g. 76.9558"
+              required
+            />
+            <Input
+              label="Latitude *"
+              type="number"
+              value={formData.latitude}
+              onChange={(e) => handleChange('latitude', e.target.value)}
+              placeholder="e.g. 11.0168"
               required
             />
             <Input

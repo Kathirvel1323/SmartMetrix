@@ -68,8 +68,8 @@ export const InstrumentsPage: React.FC = () => {
       header: 'Instrument Name',
       accessor: (item) => (
         <div>
-          <div className="font-semibold text-slate-100">{item.name}</div>
-          <div className="text-xs text-slate-400">{item.manufacturer} • {item.modelNumber}</div>
+          <div className="font-semibold text-slate-100">{item.manufacturer}</div>
+          <div className="text-xs text-slate-400">Model: {item.model}</div>
         </div>
       ),
     },
@@ -77,7 +77,7 @@ export const InstrumentsPage: React.FC = () => {
       header: 'Type & Capacity',
       accessor: (item) => (
         <span className="text-xs text-slate-300">
-          {item.type} ({item.capacityValue} {item.capacityUnit})
+          {item.type} ({item.capacity?.value} {item.capacity?.unit})
         </span>
       ),
     },
@@ -96,8 +96,8 @@ export const InstrumentsPage: React.FC = () => {
     {
       header: 'Status',
       accessor: (item) => (
-        <Badge variant={item.verificationStatus === 'VERIFIED' ? 'pass' : 'pending'}>
-          {item.verificationStatus || 'PENDING'}
+        <Badge variant={item.status === 'ACTIVE' ? 'pass' : 'pending'}>
+          {item.status}
         </Badge>
       ),
     },

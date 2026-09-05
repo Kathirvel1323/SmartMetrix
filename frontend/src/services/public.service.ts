@@ -20,13 +20,10 @@ export interface PublicVerificationData {
 }
 
 export interface PublicComplaintPayload {
-  instrumentId?: string;
-  businessName?: string;
-  city: string;
-  state: string;
+  publicVerificationId: string;
   category: string;
   description: string;
-  contactEmail?: string;
+  complainantContact?: string;
 }
 
 export interface PublicComplaintResult {
