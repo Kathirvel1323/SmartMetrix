@@ -224,6 +224,7 @@ export class AnalyticsService {
     verScope.status = { $in: ['ASSIGNED', 'SCHEDULED'] };
 
     const list = await VerificationRequest.find(verScope)
+      .populate('instrument', 'instrumentId manufacturer model')
       .sort({ scheduledAt: 1, createdAt: 1 })
       .limit(10)
       .lean();

@@ -23,6 +23,7 @@ export const RequestVerificationModal: React.FC<RequestVerificationModalProps> =
   const [instruments, setInstruments] = useState<Instrument[]>([]);
   const [selectedInstrumentId, setSelectedInstrumentId] = useState('');
   const [notes, setNotes] = useState('');
+  const [verificationType, setVerificationType] = useState<'INITIAL' | 'RE_VERIFICATION'>('INITIAL');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -63,7 +64,8 @@ export const RequestVerificationModal: React.FC<RequestVerificationModalProps> =
     try {
       await verificationService.createVerificationRequest({
         instrumentId: selectedInstrumentId,
-        notes,
+        verificationType,
+        remarks: notes,
       });
 
       setSuccessMessage('Verification request successfully submitted for review!');
@@ -106,7 +108,7 @@ export const RequestVerificationModal: React.FC<RequestVerificationModalProps> =
             <span className="text-[11px] text-teal-400 font-semibold uppercase tracking-wider">
               Target Instrument
             </span>
-            <h4 className="text-sm font-bold text-white">{preselectedInstrument.name}</h4>
+            <h4 className="text-sm font-bold text-white">{preselectedInstrument.manufacturer} {preselectedInstrument.model}</h4>
             <p className="text-xs text-slate-400 font-mono">
               ID: {preselectedInstrument.instrumentId} • S/N: {preselectedInstrument.serialNumber}
             </p>
@@ -117,11 +119,21 @@ export const RequestVerificationModal: React.FC<RequestVerificationModalProps> =
             value={selectedInstrumentId}
             onChange={(e) => setSelectedInstrumentId(e.target.value)}
             options={instruments.map((inst) => ({
-              label: `${inst.name} (${inst.instrumentId} - ${inst.serialNumber})`,
+              label: `${inst.manufacturer} ${inst.model} (${inst.instrumentId} - ${inst.serialNumber})`,
               value: inst._id || inst.instrumentId,
             }))}
           />
         )}
+
+        <Select
+          label="Verification Type *"
+          value={verificationType}
+          onChange={(e) => setVerificationType(e.target.value as 'INITIAL' | 'RE_VERIFICATION')}
+          options={[
+            { label: 'Initial Verification', value: 'INITIAL' },
+            { label: 'Re-verification', value: 'RE_VERIFICATION' },
+          ]}
+        />
 
         <div>
           <label className="block text-xs font-medium text-slate-300 mb-1">

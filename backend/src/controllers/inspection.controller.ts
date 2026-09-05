@@ -77,14 +77,15 @@ export class InspectionController {
    */
   async listInspections(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { page, limit, inspectorId, instrumentId, verificationRequestId } = req.query;
+      const { page, limit, inspectorId, instrumentId, verificationRequestId, inspectorResult } = req.query;
       const result = await inspectionService.listInspections(
         {
           page: page ? Number(page) : undefined,
           limit: limit ? Number(limit) : undefined,
           inspectorId: inspectorId as string,
           instrumentId: instrumentId as string,
-          verificationRequestId: verificationRequestId as string
+          verificationRequestId: verificationRequestId as string,
+          inspectorResult: inspectorResult as 'PASS' | 'FAIL'
         },
         req.user!
       );

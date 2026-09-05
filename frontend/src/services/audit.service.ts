@@ -35,7 +35,7 @@ export interface AuditResponse {
 
 export const auditService = {
   async getAuditLogs(params: AuditParams): Promise<AuditResponse> {
-    const response = await apiClient.get('/audit', { params });
+    const response = await apiClient.get('/audit-logs', { params });
     const body = response.data;
     return {
       logs: body?.data || body?.logs || [],

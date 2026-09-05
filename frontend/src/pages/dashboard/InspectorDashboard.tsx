@@ -15,7 +15,7 @@ export const InspectorDashboard: React.FC = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await verificationService.getVerificationRequests({ status: 'ASSIGNED' });
+        const res = await verificationService.getVerificationRequests({ limit: 100 });
         setAssignedRequests(res.requests || []);
       } catch {
         setAssignedRequests([]);
@@ -27,6 +27,8 @@ export const InspectorDashboard: React.FC = () => {
   }, []);
 
   if (isLoading) return <LoadingState message="Loading Inspector Field Schedule..." />;
+
+  const fieldQueue = assignedRequests.filter((request) => ['ASSIGNED', 'SCHEDULED'].includes(request.status));
 
   return (
     <div className="space-y-6">
@@ -54,7 +56,7 @@ export const InspectorDashboard: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard
           title="Assigned To Me"
-          value={assignedRequests.length}
+          value={fieldQueue.length}
           subtitle="Verification requests pending"
           icon={<ClipboardCheck className="w-6 h-6" />}
           color="teal"
@@ -77,19 +79,19 @@ export const InspectorDashboard: React.FC = () => {
 
       {/* Priority Assigned Queue */}
       <Card title="Today's Field Inspection Queue" subtitle="Assigned verification assignments with GPS coordinates">
-        {assignedRequests.length > 0 ? (
+        {fieldQueue.length > 0 ? (
           <div className="divide-y divide-slate-800">
-            {assignedRequests.map((req) => (
+            {fieldQueue.map((req) => (
               <div key={req._id} className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <span className="font-mono text-xs font-bold text-teal-400">{req.requestId}</span>
                     <Badge variant="scheduled">{req.status}</Badge>
                   </div>
-                  <h4 className="text-sm font-bold text-slate-100">{req.instrumentId?.name || 'Commercial Instrument'}</h4>
+                  <h4 className="text-sm font-bold text-slate-100">{req.instrument?.manufacturer} {req.instrument?.model || 'Commercial Instrument'}</h4>
                   <p className="text-xs text-slate-400 flex items-center gap-1">
                     <MapPin className="w-3.5 h-3.5 text-slate-500" />
-                    {req.instrumentId?.location?.address || 'Site Inspection Address'}, {req.instrumentId?.location?.city || 'District'}
+                    {req.instrument?.location?.address || 'Site Inspection Address'}, {req.instrument?.location?.city || 'District'}
                   </p>
                 </div>
                 <Link to="/inspections">

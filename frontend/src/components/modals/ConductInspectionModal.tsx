@@ -20,13 +20,13 @@ export const ConductInspectionModal: React.FC<ConductInspectionModalProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const [referenceReading, setReferenceReading] = useState('100.00');
-  const [observedReading, setObservedReading] = useState('100.05');
+  const [referenceReading, setReferenceReading] = useState('');
+  const [observedReading, setObservedReading] = useState('');
   const [deviationUnit, setDeviationUnit] = useState('kg');
-  const [result, setResult] = useState<'PASS' | 'FAIL' | 'INCONCLUSIVE'>('PASS');
+  const [result, setResult] = useState<'PASS' | 'FAIL'>('PASS');
   const [overrideReason, setOverrideReason] = useState('');
-  const [latitude, setLatitude] = useState('19.0760');
-  const [longitude, setLongitude] = useState('72.8777');
+  const [latitude, setLatitude] = useState('');
+  const [longitude, setLongitude] = useState('');
   const [evidenceFiles, setEvidenceFiles] = useState<FileList | null>(null);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -39,9 +39,8 @@ export const ConductInspectionModal: React.FC<ConductInspectionModalProps> = ({
   const deviation = Number((obsNum - refNum).toFixed(4));
   const deviationPct = refNum > 0 ? Number(((deviation / refNum) * 100).toFixed(4)) : 0;
 
-  // Standard rule of thumb: pass if deviation <= 0.1% or 0.1 unit
-  const autoCalculatedAssessment: 'PASS' | 'FAIL' = Math.abs(deviationPct) <= 0.2 ? 'PASS' : 'FAIL';
-  const isOverride = result !== autoCalculatedAssessment;
+  // This preview is informational only. The backend applies the configured tolerance rule.
+  const hasReadings = referenceReading.trim() !== '' && observedReading.trim() !== '';
 
   useEffect(() => {
     if (isOpen) {
@@ -52,9 +51,7 @@ export const ConductInspectionModal: React.FC<ConductInspectionModalProps> = ({
             setLatitude(pos.coords.latitude.toFixed(6));
             setLongitude(pos.coords.longitude.toFixed(6));
           },
-          () => {
-            // Geolocation denied or unavailable; use default city coordinates
-          }
+          () => undefined
         );
       }
     }
@@ -67,8 +64,8 @@ export const ConductInspectionModal: React.FC<ConductInspectionModalProps> = ({
     setError('');
     setSuccessMessage('');
 
-    if (isOverride && !overrideReason.trim()) {
-      setError('An override reason is required when overriding the calculated pass/fail assessment.');
+    if (!latitude.trim() || !longitude.trim()) {
+      setError('GPS latitude and longitude are required. Allow location access or enter them manually.');
       return;
     }
 
@@ -93,7 +90,7 @@ export const ConductInspectionModal: React.FC<ConductInspectionModalProps> = ({
 
       await inspectionService.submitInspection(formData);
 
-      setSuccessMessage('Field inspection completed & HMAC tamper seal generated!');
+      setSuccessMessage('Field inspection submitted and stored successfully.');
       setTimeout(() => {
         onSuccess();
         onClose();
@@ -169,20 +166,17 @@ export const ConductInspectionModal: React.FC<ConductInspectionModalProps> = ({
             </span>
             <div className="flex items-baseline gap-3 mt-1">
               <span className="text-2xl font-mono font-extrabold text-white">
-                {deviation > 0 ? `+${deviation}` : deviation} {deviationUnit}
+                {hasReadings ? `${deviation > 0 ? '+' : ''}${deviation}` : '—'} {deviationUnit}
               </span>
-              <span className={`text-xs font-bold font-mono px-2 py-0.5 rounded ${autoCalculatedAssessment === 'PASS' ? 'bg-emerald-950 text-emerald-400 border border-emerald-500/30' : 'bg-red-950 text-red-400 border border-red-500/30'}`}>
-                {deviationPct > 0 ? `+${deviationPct}%` : `${deviationPct}%`} deviation
+              <span className="text-xs font-bold font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                {hasReadings ? `${deviationPct > 0 ? '+' : ''}${deviationPct}% deviation` : 'Awaiting readings'}
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400">Rule Assessment:</span>
-            <span className={`px-2.5 py-1 rounded-lg text-xs font-bold ${autoCalculatedAssessment === 'PASS' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-red-500/20 text-red-300 border border-red-500/40'}`}>
-              {autoCalculatedAssessment}
-            </span>
-          </div>
+          <p className="text-xs text-slate-400 max-w-xs text-right">
+            Preview only. The configured server-side tolerance rule determines the calculated assessment.
+          </p>
         </div>
 
         {/* Result & Override Section */}
@@ -194,15 +188,13 @@ export const ConductInspectionModal: React.FC<ConductInspectionModalProps> = ({
             options={[
               { label: 'PASS — Certified Legal Compliant', value: 'PASS' },
               { label: 'FAIL — Out of Tolerance / Non-Compliant', value: 'FAIL' },
-              { label: 'INCONCLUSIVE — Requires Lab Re-test', value: 'INCONCLUSIVE' },
             ]}
           />
 
-          {isOverride && (
-            <div className="sm:col-span-2 p-3 bg-amber-950/40 border border-amber-500/40 rounded-xl space-y-2">
+          <div className="sm:col-span-2 p-3 bg-amber-950/40 border border-amber-500/40 rounded-xl space-y-2">
               <label className="block text-xs font-bold text-amber-300 flex items-center gap-1.5">
                 <ShieldAlert className="w-4 h-4 text-amber-400" />
-                Inspector Assessment Override Reason *
+                Override Reason (required only if verdict differs from server assessment)
               </label>
               <textarea
                 rows={2}
@@ -210,10 +202,8 @@ export const ConductInspectionModal: React.FC<ConductInspectionModalProps> = ({
                 onChange={(e) => setOverrideReason(e.target.value)}
                 placeholder="Explain why final verdict differs from calculated tolerance assessment..."
                 className="w-full bg-slate-950 border border-amber-500/40 rounded-lg p-2.5 text-xs text-slate-100 placeholder-slate-500 outline-none"
-                required
               />
-            </div>
-          )}
+          </div>
         </div>
 
         {/* Geo Location Capture */}
@@ -230,12 +220,14 @@ export const ConductInspectionModal: React.FC<ConductInspectionModalProps> = ({
               value={latitude}
               onChange={(e) => setLatitude(e.target.value)}
               className="font-mono"
+              required
             />
             <Input
               label="Longitude"
               value={longitude}
               onChange={(e) => setLongitude(e.target.value)}
               className="font-mono"
+              required
             />
           </div>
         </div>
@@ -244,12 +236,12 @@ export const ConductInspectionModal: React.FC<ConductInspectionModalProps> = ({
         <div>
           <label className="block text-xs font-medium text-slate-300 mb-1 flex items-center gap-1.5">
             <Upload className="w-3.5 h-3.5 text-teal-400" />
-            Field Evidence Photos (Max 5 Image/PDF Attachments)
+            Field Evidence Photos (Max 5 JPEG, PNG, or WebP images)
           </label>
           <input
             type="file"
             multiple
-            accept="image/*,.pdf"
+            accept="image/jpeg,image/png,image/webp"
             onChange={(e) => setEvidenceFiles(e.target.files)}
             className="w-full bg-slate-950 border border-slate-800 focus:border-teal-500 rounded-xl px-3.5 py-2 text-xs text-slate-300 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-teal-300 hover:file:bg-slate-700 cursor-pointer"
           />

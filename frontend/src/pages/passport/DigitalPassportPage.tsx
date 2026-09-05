@@ -51,9 +51,9 @@ export const DigitalPassportPage: React.FC = () => {
       .then(([inst, verifRes, certs]) => {
         setInstrument(inst);
         const allVerifs = (verifRes as any)?.requests || verifRes || [];
-        const matched = allVerifs.filter((v: any) => v.instrumentId === selectedId || v.instrumentId?._id === inst?._id);
+        const matched = allVerifs.filter((v: any) => v.instrument?.instrumentId === selectedId || v.instrument?._id === inst?._id);
         setVerifications(matched);
-        const activeCert = (certs || []).find((c: any) => (c.instrumentId === selectedId || c.instrument?._id === inst?._id) && c.status === 'VALID');
+        const activeCert = (certs || []).find((c: any) => c.instrumentSnapshot?.instrumentId === selectedId && c.status === 'VALID');
         setCertificate(activeCert || null);
       })
       .catch(() => {})
@@ -128,18 +128,18 @@ export const DigitalPassportPage: React.FC = () => {
                   </span>
                   <h2 className="text-2xl font-black text-slate-100 font-mono tracking-tight">{instrument.instrumentId}</h2>
                   <p className="text-xs text-slate-400 mt-1">
-                    {instrument.manufacturer} • Model: {instrument.modelNumber}
+                    {instrument.manufacturer} • Model: {instrument.model}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
                   <span
                     className={`px-3 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wider ${
-                      instrument.verificationStatus === 'VERIFIED'
+                      instrument.status === 'ACTIVE'
                         ? 'bg-teal-950 text-teal-300 border border-teal-500/40'
                         : 'bg-amber-950 text-amber-300 border border-amber-500/40'
                     }`}
                   >
-                    {instrument.verificationStatus}
+                    {instrument.status}
                   </span>
                 </div>
               </div>
@@ -152,7 +152,7 @@ export const DigitalPassportPage: React.FC = () => {
                 </div>
                 <div className="bg-slate-950/50 p-3 rounded-xl border border-slate-800">
                   <span className="text-[10px] text-slate-400 block">Capacity Range</span>
-                  <span className="font-mono text-slate-200">{instrument.capacityValue ? `${instrument.capacityValue} ${instrument.capacityUnit}` : 'Standard'}</span>
+                  <span className="font-mono text-slate-200">{instrument.capacity ? `${instrument.capacity.value} ${instrument.capacity.unit}` : 'Not recorded'}</span>
                 </div>
                 <div className="bg-slate-950/50 p-3 rounded-xl border border-slate-800">
                   <span className="text-[10px] text-slate-400 block">Serial Number</span>
@@ -169,15 +169,13 @@ export const DigitalPassportPage: React.FC = () => {
                 <div className="flex items-center gap-3">
                   <Building className="w-5 h-5 text-teal-400 shrink-0" />
                   <div>
-                    <p className="font-bold text-slate-200">{instrument.name || 'Registered Device'}</p>
+                    <p className="font-bold text-slate-200">{instrument.manufacturer} {instrument.model}</p>
                     <p className="text-[11px] text-slate-400">{instrument.location?.address || `${instrument.location?.city}, ${instrument.location?.state}`}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className="text-[10px] text-slate-400 block">Next Due Date</span>
-                  <span className="font-mono font-bold text-teal-300">
-                    {instrument.nextVerificationDueDate ? new Date(instrument.nextVerificationDueDate).toLocaleDateString() : 'N/A'}
-                  </span>
+                  <span className="text-[10px] text-slate-400 block">Registry Status</span>
+                  <span className="font-mono font-bold text-teal-300">{instrument.status}</span>
                 </div>
               </div>
             </div>
@@ -197,7 +195,7 @@ export const DigitalPassportPage: React.FC = () => {
                         <ShieldCheck className={`w-5 h-5 ${v.status === 'PASSED' ? 'text-teal-400' : 'text-amber-400'}`} />
                         <div>
                           <p className="font-bold text-slate-200 font-mono">Request #{v.requestId}</p>
-                          <p className="text-[11px] text-slate-400">Inspector ID: {typeof v.assignedInspectorId === 'object' ? v.assignedInspectorId?.name : v.assignedInspectorId || 'Unassigned'}</p>
+                          <p className="text-[11px] text-slate-400">Inspector: {typeof v.assignedInspector === 'object' ? v.assignedInspector?.name : v.assignedInspector || 'Unassigned'}</p>
                         </div>
                       </div>
                       <div className="text-right space-y-1">

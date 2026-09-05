@@ -2,7 +2,7 @@ import { apiClient } from './api';
 import type { Inspection } from '../types';
 
 export const inspectionService = {
-  async getInspections(params?: { result?: string; status?: string; page?: number; limit?: number }): Promise<{ inspections: Inspection[]; total: number; page: number; totalPages: number }> {
+  async getInspections(params?: { inspectorResult?: 'PASS' | 'FAIL' | ''; page?: number; limit?: number }): Promise<{ inspections: Inspection[]; total: number; page: number; totalPages: number }> {
     const response = await apiClient.get('/inspections', { params });
     const resBody = response.data;
     const items = resBody.data || resBody.inspections || (Array.isArray(resBody) ? resBody : []);

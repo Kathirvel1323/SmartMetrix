@@ -42,12 +42,14 @@ export const TrackComplaintPage: React.FC = () => {
     switch (status) {
       case 'RESOLVED':
         return <span className="px-3 py-1 rounded-full text-xs font-bold bg-teal-950 text-teal-300 border border-teal-500/40 flex items-center gap-1"><CheckCircle className="w-3.5 h-3.5" /> RESOLVED</span>;
-      case 'UNDER_INVESTIGATION':
-        return <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-950 text-amber-300 border border-amber-500/40 flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> UNDER INVESTIGATION</span>;
-      case 'REJECTED':
-        return <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-950 text-red-300 border border-red-500/40 flex items-center gap-1"><AlertTriangle className="w-3.5 h-3.5" /> REJECTED</span>;
+      case 'UNDER_REVIEW':
+        return <span className="px-3 py-1 rounded-full text-xs font-bold bg-sky-950 text-sky-300 border border-sky-500/40 flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> UNDER REVIEW</span>;
+      case 'INVESTIGATING':
+        return <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-950 text-amber-300 border border-amber-500/40 flex items-center gap-1"><Clock className="w-3.5 h-3.5" /> INVESTIGATING</span>;
+      case 'DISMISSED':
+        return <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-950 text-red-300 border border-red-500/40 flex items-center gap-1"><AlertTriangle className="w-3.5 h-3.5" /> DISMISSED</span>;
       default:
-        return <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-300 border border-slate-700 flex items-center gap-1"><FileText className="w-3.5 h-3.5" /> RECEIVED</span>;
+        return <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-300 border border-slate-700 flex items-center gap-1"><FileText className="w-3.5 h-3.5" /> SUBMITTED</span>;
     }
   };
 

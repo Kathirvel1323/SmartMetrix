@@ -20,7 +20,7 @@ export const verificationService = {
     return response.data?.data?.verification || response.data?.verification || response.data;
   },
 
-  async createVerificationRequest(data: { instrumentId: string; notes?: string }): Promise<VerificationRequest> {
+  async createVerificationRequest(data: { instrumentId: string; verificationType: 'INITIAL' | 'RE_VERIFICATION'; remarks?: string }): Promise<VerificationRequest> {
     const response = await apiClient.post('/verifications', data);
     return response.data?.data?.verification || response.data?.verification || response.data;
   },

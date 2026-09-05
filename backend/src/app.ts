@@ -30,7 +30,7 @@ const corsOrigin = process.env.CORS_ORIGIN || '*';
 app.use(
   cors({
     origin: corsOrigin,
-    credentials: true
+    credentials: corsOrigin !== '*'
   })
 );
 
@@ -41,7 +41,9 @@ app.use(express.urlencoded({ extended: true }));
 // API Routes
 app.use('/api/health', healthRoutes);
 app.use('/api/auth', authRoutes);
-app.use('/api/test', rbacTestRoutes);
+if (process.env.NODE_ENV !== 'production') {
+  app.use('/api/test', rbacTestRoutes);
+}
 app.use('/api/instruments', instrumentRoutes);
 app.use('/api/verifications', verificationRoutes);
 app.use('/api/tolerance-rules', toleranceRoutes);

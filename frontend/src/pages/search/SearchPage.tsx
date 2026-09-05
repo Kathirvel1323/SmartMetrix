@@ -67,6 +67,8 @@ export const SearchPage: React.FC = () => {
         return `/certificates`;
       case 'NOTICE':
         return `/notices`;
+      case 'COMPLAINT':
+        return `/complaints`;
       default:
         return `/dashboard`;
     }
@@ -105,6 +107,7 @@ export const SearchPage: React.FC = () => {
               <option value="VERIFICATION">Verifications</option>
               <option value="CERTIFICATE">Certificates</option>
               <option value="NOTICE">Notices</option>
+              <option value="COMPLAINT">Complaints</option>
             </select>
 
             <input

@@ -22,37 +22,35 @@ export interface AuthResponse {
 export interface Instrument {
   _id: string;
   instrumentId: string;
-  ownerId: string | User;
-  name: string;
+  owner: string | User;
   type: string;
   category: string;
   manufacturer: string;
-  modelNumber: string;
+  model: string;
   serialNumber: string;
-  capacityValue: number;
-  capacityUnit: string;
-  verificationStatus: 'PENDING' | 'VERIFIED' | 'REJECTED' | 'EXPIRED';
-  lastVerificationDate?: string;
-  nextVerificationDueDate?: string;
+  capacity: { value: number; unit: string };
+  accuracyClass?: string;
+  status: 'REGISTERED' | 'ACTIVE' | 'INACTIVE' | 'UNDER_VERIFICATION' | 'SUSPENDED' | 'DECOMMISSIONED';
   location: {
     address: string;
     city: string;
     district: string;
     state: string;
     pincode: string;
-    coordinates?: [number, number];
+    coordinates?: { type: 'Point'; coordinates: [number, number] };
   };
-  isActive: boolean;
+  isArchived: boolean;
   createdAt: string;
 }
 
 export interface VerificationRequest {
   _id: string;
   requestId: string;
-  instrumentId: Instrument;
-  ownerId: User;
-  assignedInspectorId?: User;
-  status: 'SUBMITTED' | 'UNDER_REVIEW' | 'ASSIGNED' | 'SCHEDULED' | 'PASSED' | 'REJECTED' | 'CANCELLED';
+  instrument: Instrument;
+  owner: User;
+  assignedInspector?: User;
+  verificationType: 'INITIAL' | 'RE_VERIFICATION';
+  status: 'SUBMITTED' | 'UNDER_REVIEW' | 'ASSIGNED' | 'SCHEDULED' | 'INSPECTION_COMPLETED' | 'PASSED' | 'FAILED' | 'CERTIFICATE_ISSUED' | 'CLOSED';
   scheduledAt?: string;
   estimatedDurationMinutes?: number;
   createdAt: string;
@@ -61,22 +59,22 @@ export interface VerificationRequest {
 export interface Inspection {
   _id: string;
   inspectionId: string;
-  verificationRequestId: VerificationRequest;
-  instrumentId: Instrument;
-  inspectorId: User;
-  status: 'PENDING' | 'FINALIZED' | 'CANCELLED';
-  result: 'PASS' | 'FAIL' | 'INCONCLUSIVE';
-  calculatedAssessment?: 'PASS' | 'FAIL';
+  verificationRequest: VerificationRequest;
+  instrument: Instrument;
+  instrumentIdSnapshot: string;
+  inspector: User;
+  status: 'PENDING' | 'FINALIZED' | 'FAILED';
+  inspectorResult: 'PASS' | 'FAIL';
+  calculatedAssessment: 'WITHIN_TOLERANCE' | 'OUTSIDE_TOLERANCE';
   overrideReason?: string;
   referenceReading: number;
-  observedReading: number;
-  deviationValue: number;
-  deviationUnit: string;
-  gpsLocation: {
-    latitude: number;
-    longitude: number;
-  };
-  evidencePhotos?: string[];
+  actualReading: number;
+  deviation: number;
+  deviationPercentage: number | null;
+  toleranceSnapshot: { ruleId: string; name: string; toleranceMode: string; toleranceValue: number; capacityUnit: string };
+  gps?: { type: 'Point'; coordinates: [number, number]; accuracy?: number; capturedAt?: string };
+  evidence?: Array<{ evidenceId: string; originalMime: string; sizeBytes: number; uploadedAt: string; downloadUrl?: string }>;
+  submittedAt: string;
   createdAt: string;
 }
 
@@ -203,7 +201,9 @@ export interface RiskPriority {
   instrument: {
     _id: string;
     instrumentId: string;
-    name: string;
+    name?: string;
+    manufacturer?: string;
+    model?: string;
     type: string;
     location?: { city?: string; district?: string; state?: string };
   };
@@ -237,7 +237,9 @@ export interface AnomalyAssessment {
   instrument: {
     _id: string;
     instrumentId: string;
-    name: string;
+    name?: string;
+    manufacturer?: string;
+    model?: string;
     type: string;
     location?: { city?: string; district?: string };
   };

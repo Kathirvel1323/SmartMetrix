@@ -2,7 +2,7 @@ import { apiClient } from './api';
 import type { Instrument } from '../types';
 
 export const instrumentService = {
-  async getInstruments(params?: { search?: string; type?: string; verificationStatus?: string; page?: number; limit?: number }): Promise<{ instruments: Instrument[]; total: number; page: number; totalPages: number }> {
+  async getInstruments(params?: { search?: string; type?: string; status?: string; page?: number; limit?: number }): Promise<{ instruments: Instrument[]; total: number; page: number; totalPages: number }> {
     const response = await apiClient.get('/instruments', { params });
     const resBody = response.data;
     const items = resBody.data || resBody.instruments || (Array.isArray(resBody) ? resBody : []);

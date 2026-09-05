@@ -40,7 +40,7 @@ export const AssignInspectorModal: React.FC<AssignInspectorModalProps> = ({
     setIsLoading(true);
 
     try {
-      const id = request._id || request.requestId;
+      const id = request.requestId;
 
       // 1. Review status transition if SUBMITTED
       if (request.status === 'SUBMITTED') {
@@ -97,7 +97,7 @@ export const AssignInspectorModal: React.FC<AssignInspectorModalProps> = ({
         <div className="p-3 bg-slate-950/80 border border-slate-800 rounded-xl flex justify-between items-center text-xs">
           <div>
             <span className="text-slate-400">Target Instrument:</span>
-            <span className="ml-1.5 font-semibold text-slate-100">{request.instrumentId?.name || 'Measuring Scale'}</span>
+            <span className="ml-1.5 font-semibold text-slate-100">{request.instrument?.manufacturer} {request.instrument?.model}</span>
           </div>
           <div>
             <span className="text-slate-400">Current Status:</span>

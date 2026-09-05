@@ -8,7 +8,7 @@ export interface DemoGenerateOptions {
 
 export const demoService = {
   async generateDemoData(options?: DemoGenerateOptions): Promise<any> {
-    const response = await apiClient.post('/demo/generate', options || { count: 100 });
-    return response.data;
+    const response = await apiClient.post('/admin/demo-data/generate', options || { count: 100 });
+    return response.data?.data;
   }
 };

@@ -1,14 +1,19 @@
 import mongoose from 'mongoose';
 
 export const connectDB = async (): Promise<void> => {
-  const mongoURI = process.env.MONGODB_URI || 'mongodb://localhost:27017/smartmetrix';
+  const mongoURI = process.env.MONGODB_URI ||
+    (process.env.NODE_ENV !== 'production' ? 'mongodb://localhost:27017/smartmetrix' : '');
+
+  if (!mongoURI) {
+    throw new Error('MONGODB_URI is required in production');
+  }
 
   try {
     const conn = await mongoose.connect(mongoURI);
     console.log(`[Database] MongoDB Connected: ${conn.connection.host}`);
   } catch (error: any) {
     console.error(`[Database Error] Failed to connect to MongoDB: ${error.message}`);
-    console.warn('[Database Notice] Ensure MongoDB is running locally or provide a valid MONGODB_URI in .env');
+    throw error;
   }
 
   mongoose.connection.on('disconnected', () => {

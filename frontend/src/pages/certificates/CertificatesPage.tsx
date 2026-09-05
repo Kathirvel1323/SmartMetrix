@@ -41,7 +41,12 @@ export const CertificatesPage: React.FC = () => {
 
   // New policy modal state
   const [showPolicyModal, setShowPolicyModal] = useState(false);
-  const [newPolicy, setNewPolicy] = useState({ category: 'WEIGHING_SCALE', validityMonths: 12, gracePeriodDays: 30, requireDigitalSignature: true });
+  const [newPolicy, setNewPolicy] = useState({
+    name: '',
+    instrumentType: 'WEIGHING_SCALE',
+    instrumentCategory: 'NON_AUTOMATIC_WEIGHING',
+    validityPeriodMonths: 12,
+  });
 
   const loadData = async () => {
     setIsLoading(true);
@@ -229,9 +234,9 @@ export const CertificatesPage: React.FC = () => {
               <thead className="bg-slate-950/80 border-b border-slate-800 text-slate-400 uppercase font-mono text-[10px]">
                 <tr>
                   <th className="p-4">Policy ID</th>
-                  <th className="p-4">Category</th>
+                  <th className="p-4">Name / Scope</th>
                   <th className="p-4">Validity (Months)</th>
-                  <th className="p-4">Grace Period</th>
+                  <th className="p-4">Version</th>
                   <th className="p-4">Status</th>
                   {user?.role === 'ADMIN' && <th className="p-4 text-right">Actions</th>}
                 </tr>
@@ -240,9 +245,12 @@ export const CertificatesPage: React.FC = () => {
                 {policies.map((p) => (
                   <tr key={p._id || p.policyId}>
                     <td className="p-4 font-mono font-bold text-teal-400">{p.policyId}</td>
-                    <td className="p-4">{p.category}</td>
-                    <td className="p-4 font-mono">{p.validityMonths} months</td>
-                    <td className="p-4 font-mono">{p.gracePeriodDays} days</td>
+                    <td className="p-4">
+                      <span className="block font-semibold text-slate-200">{p.name}</span>
+                      <span className="block text-[10px] text-slate-500">{p.instrumentType} / {p.instrumentCategory}</span>
+                    </td>
+                    <td className="p-4 font-mono">{p.validityPeriodMonths} months</td>
+                    <td className="p-4 font-mono">v{p.version}</td>
                     <td className="p-4">
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${p.isActive ? 'bg-teal-950 text-teal-300' : 'bg-red-950 text-red-300'}`}>
                         {p.isActive ? 'ACTIVE' : 'INACTIVE'}
@@ -326,33 +334,45 @@ export const CertificatesPage: React.FC = () => {
             <h3 className="text-base font-bold text-slate-100">Create Certificate Policy</h3>
             <form onSubmit={handleCreatePolicy} className="space-y-4 text-xs">
               <div>
-                <label className="block text-slate-300 mb-1 font-semibold">Category</label>
-                <select
-                  value={newPolicy.category}
-                  onChange={(e) => setNewPolicy({ ...newPolicy, category: e.target.value })}
+                <label className="block text-slate-300 mb-1 font-semibold">Policy Name</label>
+                <input
+                  type="text"
+                  required
+                  value={newPolicy.name}
+                  onChange={(e) => setNewPolicy({ ...newPolicy, name: e.target.value })}
+                  placeholder="e.g. Standard weighing scale policy"
                   className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200"
-                >
-                  <option value="WEIGHING_SCALE">Weighing Scale</option>
-                  <option value="FUEL_DISPENSER">Fuel Dispenser</option>
-                  <option value="TAXI_METER">Taxi Meter</option>
-                  <option value="STORAGE_TANK">Storage Tank</option>
-                </select>
+                />
+              </div>
+              <div>
+                <label className="block text-slate-300 mb-1 font-semibold">Instrument Type</label>
+                <input
+                  type="text"
+                  required
+                  value={newPolicy.instrumentType}
+                  onChange={(e) => setNewPolicy({ ...newPolicy, instrumentType: e.target.value })}
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200"
+                />
+              </div>
+              <div>
+                <label className="block text-slate-300 mb-1 font-semibold">Instrument Category</label>
+                <input
+                  type="text"
+                  required
+                  value={newPolicy.instrumentCategory}
+                  onChange={(e) => setNewPolicy({ ...newPolicy, instrumentCategory: e.target.value })}
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200"
+                />
               </div>
               <div>
                 <label className="block text-slate-300 mb-1 font-semibold">Validity (Months)</label>
                 <input
                   type="number"
-                  value={newPolicy.validityMonths}
-                  onChange={(e) => setNewPolicy({ ...newPolicy, validityMonths: parseInt(e.target.value) })}
-                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200"
-                />
-              </div>
-              <div>
-                <label className="block text-slate-300 mb-1 font-semibold">Grace Period (Days)</label>
-                <input
-                  type="number"
-                  value={newPolicy.gracePeriodDays}
-                  onChange={(e) => setNewPolicy({ ...newPolicy, gracePeriodDays: parseInt(e.target.value) })}
+                  min={1}
+                  max={120}
+                  required
+                  value={newPolicy.validityPeriodMonths}
+                  onChange={(e) => setNewPolicy({ ...newPolicy, validityPeriodMonths: Number(e.target.value) })}
                   className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-slate-200"
                 />
               </div>
