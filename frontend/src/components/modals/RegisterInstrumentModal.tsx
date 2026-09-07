@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { Select } from '../ui/Select';
 import { instrumentService } from '../../services/instrument.service';
 import { AlertCircle, Scale, CheckCircle } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { authService } from '../../services/auth.service';
+import type { User } from '../../types';
 
 interface RegisterInstrumentModalProps {
   isOpen: boolean;
@@ -17,7 +20,10 @@ export const RegisterInstrumentModal: React.FC<RegisterInstrumentModalProps> = (
   onClose,
   onSuccess,
 }) => {
+  const { user } = useAuth();
+  const [owners, setOwners] = useState<User[]>([]);
   const [formData, setFormData] = useState({
+    ownerId: '',
     type: 'WEIGHING_SCALE',
     category: 'NON_AUTOMATIC_WEIGHING',
     manufacturer: '',
@@ -39,8 +45,28 @@ export const RegisterInstrumentModal: React.FC<RegisterInstrumentModalProps> = (
   const [successMessage, setSuccessMessage] = useState('');
 
   const handleChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    const categoryByType: Record<string, string> = {
+      WEIGHING_SCALE: 'NON_AUTOMATIC_WEIGHING',
+      FUEL_PUMP: 'FUEL_DISPENSER',
+      FLOW_METER: 'FLOW_METER',
+      LENGTH_MEASURE: 'LENGTH_MEASURE',
+    };
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+      ...(field === 'type' ? { category: categoryByType[value] || value } : {}),
+    }));
   };
+
+  useEffect(() => {
+    if (!isOpen || user?.role !== 'ADMIN') return;
+    authService.listActiveUsers('OWNER')
+      .then((list) => {
+        setOwners(list);
+        setFormData((current) => ({ ...current, ownerId: current.ownerId || list[0]?._id || '' }));
+      })
+      .catch((err: any) => setError(err.response?.data?.message || 'Failed to load active owners.'));
+  }, [isOpen, user?.role]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,6 +76,7 @@ export const RegisterInstrumentModal: React.FC<RegisterInstrumentModalProps> = (
 
     try {
       await instrumentService.registerInstrument({
+        ...(user?.role === 'ADMIN' ? { ownerId: formData.ownerId } : {}),
         type: formData.type,
         category: formData.category,
         manufacturer: formData.manufacturer,
@@ -104,6 +131,18 @@ export const RegisterInstrumentModal: React.FC<RegisterInstrumentModalProps> = (
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        {user?.role === 'ADMIN' && (
+          <Select
+            label="Instrument Owner *"
+            value={formData.ownerId}
+            onChange={(e) => handleChange('ownerId', e.target.value)}
+            options={owners.map((owner) => ({
+              label: `${owner.name} (${owner.organization || owner.email})`,
+              value: owner._id,
+            }))}
+            required
+          />
+        )}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Select
             label="Instrument Class / Type *"

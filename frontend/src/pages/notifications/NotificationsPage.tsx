@@ -31,11 +31,11 @@ export const NotificationsPage: React.FC = () => {
     fetchNotifications();
   }, []);
 
-  const handleMarkAsRead = async (id: string) => {
+  const handleMarkAsRead = async (notificationId: string) => {
     try {
-      await notificationService.markAsRead(id);
+      await notificationService.markAsRead(notificationId);
       setNotifications((prev) =>
-        prev.map((n) => (n._id === id ? { ...n, isRead: true } : n))
+        prev.map((n) => (n.notificationId === notificationId ? { ...n, isRead: true } : n))
       );
     } catch {
       // Ignore
@@ -112,7 +112,7 @@ export const NotificationsPage: React.FC = () => {
                 </div>
                 {!n.isRead && (
                   <button
-                    onClick={() => handleMarkAsRead(n._id)}
+                    onClick={() => handleMarkAsRead(n.notificationId)}
                     className="p-1.5 text-xs text-teal-400 hover:bg-slate-800 rounded-lg flex items-center gap-1 font-semibold border border-teal-500/30 shrink-0"
                   >
                     <CheckCircle2 className="w-3.5 h-3.5" /> Mark Read

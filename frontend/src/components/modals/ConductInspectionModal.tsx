@@ -72,7 +72,7 @@ export const ConductInspectionModal: React.FC<ConductInspectionModalProps> = ({
     setIsLoading(true);
     try {
       const formData = new FormData();
-      formData.append('verificationRequestId', verificationRequest._id || verificationRequest.requestId);
+      formData.append('verificationRequestId', verificationRequest.requestId);
       formData.append('referenceReading', referenceReading);
       formData.append('actualReading', observedReading);
       formData.append('inspectorResult', result);

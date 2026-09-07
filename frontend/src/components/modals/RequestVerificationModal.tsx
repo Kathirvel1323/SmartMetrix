@@ -33,7 +33,7 @@ export const RequestVerificationModal: React.FC<RequestVerificationModalProps> =
       const res = await instrumentService.getInstruments({ limit: 50 });
       setInstruments(res.instruments);
       if (res.instruments.length > 0) {
-        setSelectedInstrumentId((current) => current || res.instruments[0]._id || res.instruments[0].instrumentId);
+        setSelectedInstrumentId((current) => current || res.instruments[0].instrumentId);
       }
     } catch {
       setInstruments([]);
@@ -43,7 +43,7 @@ export const RequestVerificationModal: React.FC<RequestVerificationModalProps> =
   useEffect(() => {
     if (isOpen) {
       if (preselectedInstrument) {
-        setSelectedInstrumentId(preselectedInstrument._id || preselectedInstrument.instrumentId);
+        setSelectedInstrumentId(preselectedInstrument.instrumentId);
       } else {
         void loadInstruments();
       }
@@ -120,7 +120,7 @@ export const RequestVerificationModal: React.FC<RequestVerificationModalProps> =
             onChange={(e) => setSelectedInstrumentId(e.target.value)}
             options={instruments.map((inst) => ({
               label: `${inst.manufacturer} ${inst.model} (${inst.instrumentId} - ${inst.serialNumber})`,
-              value: inst._id || inst.instrumentId,
+              value: inst.instrumentId,
             }))}
           />
         )}

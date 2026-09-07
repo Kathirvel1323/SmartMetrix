@@ -37,7 +37,10 @@ export const NoticesPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [actionError, setActionError] = useState('');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [closingNotice, setClosingNotice] = useState<ImprovementNotice | null>(null);
+  const [closureRemarks, setClosureRemarks] = useState('');
 
   const loadNotices = async () => {
     setIsLoading(true);
@@ -56,15 +59,28 @@ export const NoticesPage: React.FC = () => {
     loadNotices();
   }, []);
 
-  const handleStatusUpdate = async (noticeId: string, newStatus: NoticeStatus) => {
+  const handleStatusUpdate = async (
+    noticeId: string,
+    newStatus: NoticeStatus,
+    closeRemarks?: string
+  ) => {
     setUpdatingId(noticeId);
+    setActionError('');
     try {
-      await noticeService.updateNoticeStatus(noticeId, newStatus);
+      await noticeService.updateNoticeStatus(noticeId, newStatus, undefined, closeRemarks);
       setNotices((prev) =>
-        prev.map((n) => (n._id === noticeId ? { ...n, status: newStatus } : n))
+        prev.map((n) =>
+          n.noticeId === noticeId
+            ? { ...n, status: newStatus, closureRemarks: closeRemarks || n.closureRemarks }
+            : n
+        )
       );
-    } catch {
-      // silently fail — reload on next refresh
+      if (newStatus === 'CLOSED') {
+        setClosingNotice(null);
+        setClosureRemarks('');
+      }
+    } catch (err: any) {
+      setActionError(err.response?.data?.message || err.message || 'Failed to update notice status.');
     } finally {
       setUpdatingId(null);
     }
@@ -97,6 +113,12 @@ export const NoticesPage: React.FC = () => {
           </Button>
         }
       />
+
+      {actionError && (
+        <div className="p-3 rounded-xl border border-red-500/40 bg-red-950/50 text-xs font-medium text-red-300">
+          {actionError}
+        </div>
+      )}
 
       {/* Summary stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -224,10 +246,10 @@ export const NoticesPage: React.FC = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          isLoading={updatingId === notice._id}
+                          isLoading={updatingId === notice.noticeId}
                           onClick={() =>
                             handleStatusUpdate(
-                              notice._id,
+                              notice.noticeId,
                               'CORRECTION_IN_PROGRESS'
                             )
                           }
@@ -235,16 +257,26 @@ export const NoticesPage: React.FC = () => {
                           Mark In Progress
                         </Button>
                       )}
-                      {(notice.status === 'CORRECTION_IN_PROGRESS' ||
-                        notice.status === 'REINSPECTION_PENDING') && (
+                      {notice.status === 'CORRECTION_IN_PROGRESS' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          isLoading={updatingId === notice.noticeId}
+                          onClick={() => handleStatusUpdate(notice.noticeId, 'REINSPECTION_PENDING')}
+                        >
+                          Mark Reinspection Pending
+                        </Button>
+                      )}
+                      {notice.status === 'REINSPECTION_PENDING' && (
                         <Button
                           variant="outline"
                           size="sm"
                           icon={<CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />}
-                          isLoading={updatingId === notice._id}
-                          onClick={() =>
-                            handleStatusUpdate(notice._id, 'CLOSED')
-                          }
+                          isLoading={updatingId === notice.noticeId}
+                          onClick={() => {
+                            setClosingNotice(notice);
+                            setClosureRemarks('');
+                          }}
                         >
                           Close Notice
                         </Button>
@@ -253,9 +285,9 @@ export const NoticesPage: React.FC = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          isLoading={updatingId === notice._id}
+                          isLoading={updatingId === notice.noticeId}
                           onClick={() =>
-                            handleStatusUpdate(notice._id, 'ESCALATED')
+                            handleStatusUpdate(notice.noticeId, 'ESCALATED')
                           }
                         >
                           Escalate
@@ -266,6 +298,40 @@ export const NoticesPage: React.FC = () => {
               </Card>
             );
           })}
+        </div>
+      )}
+
+      {closingNotice && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              void handleStatusUpdate(closingNotice.noticeId, 'CLOSED', closureRemarks.trim());
+            }}
+            className="w-full max-w-md rounded-3xl border border-slate-700 bg-slate-900 p-6 space-y-4 shadow-2xl"
+          >
+            <div>
+              <h3 className="text-base font-bold text-slate-100">Close {closingNotice.noticeId}</h3>
+              <p className="text-xs text-slate-400 mt-1">Record the reinspection or compliance evidence used to close this notice.</p>
+            </div>
+            <textarea
+              required
+              minLength={5}
+              rows={4}
+              value={closureRemarks}
+              onChange={(event) => setClosureRemarks(event.target.value)}
+              placeholder="e.g. Reinspection completed; instrument recalibrated and verified compliant."
+              className="w-full rounded-xl border border-slate-700 bg-slate-950 p-3 text-xs text-slate-200 outline-none focus:border-teal-500"
+            />
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => setClosingNotice(null)}>
+                Cancel
+              </Button>
+              <Button type="submit" size="sm" isLoading={updatingId === closingNotice.noticeId}>
+                Confirm Closure
+              </Button>
+            </div>
+          </form>
         </div>
       )}
     </div>

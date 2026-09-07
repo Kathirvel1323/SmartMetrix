@@ -127,3 +127,22 @@ export const createInspector = async (
     next(error);
   }
 };
+
+/** ADMIN: safe directory used by owner/inspector assignment dropdowns. */
+export const listActiveUsers = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const role = String(req.query.role || '').toUpperCase();
+    if (role !== 'OWNER' && role !== 'INSPECTOR') {
+      res.status(400).json({ status: 'error', message: 'role must be OWNER or INSPECTOR' });
+      return;
+    }
+    const users = await authService.listActiveUsersByRole(role);
+    res.status(200).json({ status: 'success', data: { users } });
+  } catch (error) {
+    next(error);
+  }
+};

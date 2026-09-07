@@ -27,6 +27,11 @@ export const authService = {
     return response.data?.data?.user || (response.data as any).user;
   },
 
+  async listActiveUsers(role: 'OWNER' | 'INSPECTOR'): Promise<User[]> {
+    const response = await apiClient.get('/auth/users', { params: { role } });
+    return response.data?.data?.users || [];
+  },
+
   async logout(): Promise<void> {
     try {
       await apiClient.post('/auth/logout');

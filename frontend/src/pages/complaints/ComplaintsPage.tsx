@@ -40,6 +40,7 @@ export const ComplaintsPage: React.FC = () => {
     e.preventDefault();
     if (!selectedComplaint) return;
     setIsUpdating(true);
+    setError(null);
     try {
       await complaintService.updateComplaintStatus(selectedComplaint.complaintId, {
         status: updateStatus,
@@ -49,7 +50,7 @@ export const ComplaintsPage: React.FC = () => {
       setSelectedComplaint(null);
       fetchComplaints();
     } catch (err: any) {
-      alert(err.message || 'Failed to update complaint status');
+      setError(err.response?.data?.message || err.message || 'Failed to update complaint status');
     } finally {
       setIsUpdating(false);
     }

@@ -43,6 +43,8 @@ export interface Instrument {
   createdAt: string;
 }
 
+export type RegisterInstrumentPayload = Partial<Instrument> & { ownerId?: string };
+
 export interface VerificationRequest {
   _id: string;
   requestId: string;

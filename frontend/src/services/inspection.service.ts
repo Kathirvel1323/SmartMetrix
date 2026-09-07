@@ -21,11 +21,7 @@ export const inspectionService = {
   },
 
   async submitInspection(formData: FormData): Promise<Inspection> {
-    const response = await apiClient.post('/inspections', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    const response = await apiClient.post('/inspections', formData);
     return response.data?.data?.inspection || response.data?.inspection || response.data;
   }
 };

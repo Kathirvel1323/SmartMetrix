@@ -12,6 +12,11 @@ export const apiClient = axios.create({
 // Request interceptor: Attach JWT bearer token from localStorage
 apiClient.interceptors.request.use(
   (config) => {
+    // Let the browser add the multipart boundary. Keeping the JSON default on
+    // FormData requests produces malformed uploads on some Axios/browser builds.
+    if (typeof FormData !== 'undefined' && config.data instanceof FormData && config.headers) {
+      delete config.headers['Content-Type'];
+    }
     const token = localStorage.getItem('smartmetrix_token');
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;

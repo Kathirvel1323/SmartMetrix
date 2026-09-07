@@ -36,6 +36,12 @@ export interface AuthResult {
 }
 
 export class AuthService {
+  async listActiveUsersByRole(role: 'OWNER' | 'INSPECTOR'): Promise<IUser[]> {
+    return User.find({ role, isActive: true })
+      .select('name email role organization district state isActive')
+      .sort({ name: 1 });
+  }
+
   /**
    * Registers a new user. Public registration ALWAYS assigns the OWNER role.
    */
