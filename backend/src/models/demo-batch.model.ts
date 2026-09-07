@@ -5,6 +5,7 @@ export interface IDemoBatch extends Document {
   idempotencyKey: string;
   seed?: string;
   count: number;
+  generatorVersion?: number;
   status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'PARTIAL_FAILURE' | 'FAILED';
   recordCounts: {
     users?: number;
@@ -34,6 +35,7 @@ const DemoBatchSchema: Schema = new Schema(
     idempotencyKey: { type: String, required: true, unique: true, index: true },
     seed: { type: String },
     count: { type: Number, required: true },
+    generatorVersion: { type: Number, default: 1 },
     status: {
       type: String,
       required: true,

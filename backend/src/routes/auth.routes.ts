@@ -4,7 +4,8 @@ import {
   login,
   logout,
   getMe,
-  createInspector
+  createInspector,
+  listActiveUsers
 } from '../controllers/auth.controller';
 import { authenticate, authorizeRoles } from '../middleware/auth.middleware';
 
@@ -20,5 +21,6 @@ router.get('/me', authenticate, getMe);
 
 // Admin-only protected route
 router.post('/inspector', authenticate, authorizeRoles('ADMIN'), createInspector);
+router.get('/users', authenticate, authorizeRoles('ADMIN'), listActiveUsers);
 
 export default router;

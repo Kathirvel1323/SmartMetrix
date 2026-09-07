@@ -1,11 +1,11 @@
 import { apiClient } from './api';
 
 export interface PhotoAssistQualityMetrics {
-  blurScore: number;
+  resolution: { width: number; height: number };
   brightnessScore: number;
   contrastScore: number;
-  resolutionWidth: number;
-  resolutionHeight: number;
+  sharpnessScore: number;
+  overallQualityScore: number;
 }
 
 export interface PhotoAssistAssessment {
@@ -14,9 +14,10 @@ export interface PhotoAssistAssessment {
   instrumentIdSnapshot: string;
   qualityMetrics: PhotoAssistQualityMetrics;
   semanticFields: {
-    serialNumberText: 'NOT_ASSESSED' | string;
-    sealText: 'NOT_ASSESSED' | string;
-    readoutText: 'NOT_ASSESSED' | string;
+    seal_intact: 'NOT_ASSESSED' | 'MANUAL_REVIEW_REQUIRED';
+    model_plate_legible: 'NOT_ASSESSED' | 'MANUAL_REVIEW_REQUIRED';
+    serial_number_match: 'NOT_ASSESSED' | 'MANUAL_REVIEW_REQUIRED';
+    tampering_detected: 'NOT_ASSESSED' | 'MANUAL_REVIEW_REQUIRED';
   };
   irregularities: string[];
   disclaimer: string;
@@ -118,9 +119,7 @@ export interface VerificationMethodRule {
 export const phase7Service = {
   // 1. Photo Assist
   async analyzePhoto(formData: FormData): Promise<PhotoAssistAssessment> {
-    const response = await apiClient.post('/phase7/photo-assist/analyze', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' }
-    });
+    const response = await apiClient.post('/phase7/photo-assist/analyze', formData);
     return response.data?.data?.assessment;
   },
 

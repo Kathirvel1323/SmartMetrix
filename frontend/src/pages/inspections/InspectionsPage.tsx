@@ -88,7 +88,7 @@ export const InspectionsPage: React.FC = () => {
           size="sm"
           onClick={(e) => {
             e.stopPropagation();
-            setSelectedInspectionId(item._id || item.inspectionId);
+            setSelectedInspectionId(item.inspectionId);
           }}
           icon={<Eye className="w-3.5 h-3.5 text-teal-400" />}
         >
@@ -131,7 +131,7 @@ export const InspectionsPage: React.FC = () => {
         emptyTitle="No Inspection Records Found"
         emptyDescription="There are no completed field inspection reports currently logged."
         keyExtractor={(item) => item._id || item.inspectionId}
-        onRowClick={(item) => setSelectedInspectionId(item._id || item.inspectionId)}
+        onRowClick={(item) => setSelectedInspectionId(item.inspectionId)}
       />
 
       <Pagination

@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
+import { Select } from '../ui/Select';
 import { verificationService } from '../../services/verification.service';
-import type { VerificationRequest } from '../../types';
+import { authService } from '../../services/auth.service';
+import type { User, VerificationRequest } from '../../types';
 import { UserCheck, AlertCircle, CheckCircle } from 'lucide-react';
 
 interface AssignInspectorModalProps {
@@ -20,6 +22,7 @@ export const AssignInspectorModal: React.FC<AssignInspectorModalProps> = ({
   onSuccess,
 }) => {
   const [inspectorId, setInspectorId] = useState('');
+  const [inspectors, setInspectors] = useState<User[]>([]);
   const [scheduledAt, setScheduledAt] = useState(() => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -30,6 +33,16 @@ export const AssignInspectorModal: React.FC<AssignInspectorModalProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+
+  useEffect(() => {
+    if (!isOpen) return;
+    authService.listActiveUsers('INSPECTOR')
+      .then((list) => {
+        setInspectors(list);
+        setInspectorId((current) => current || list[0]?._id || '');
+      })
+      .catch((err: any) => setError(err.response?.data?.message || 'Failed to load active inspectors.'));
+  }, [isOpen]);
 
   if (!isOpen || !request) return null;
 
@@ -105,11 +118,14 @@ export const AssignInspectorModal: React.FC<AssignInspectorModalProps> = ({
           </div>
         </div>
 
-        <Input
-          label="Inspector User ID / Mongo ID *"
-          placeholder="e.g. 64b8f... or select field officer"
+        <Select
+          label="Authorized Inspector *"
           value={inspectorId}
           onChange={(e) => setInspectorId(e.target.value)}
+          options={inspectors.map((inspector) => ({
+            label: `${inspector.name} (${inspector.email})`,
+            value: inspector._id,
+          }))}
           required
         />
 

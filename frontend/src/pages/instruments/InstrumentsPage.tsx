@@ -110,7 +110,7 @@ export const InstrumentsPage: React.FC = () => {
           size="sm"
           onClick={(e) => {
             e.stopPropagation();
-            setSelectedInstrumentId(item._id || item.instrumentId);
+            setSelectedInstrumentId(item.instrumentId);
           }}
           icon={<Eye className="w-3.5 h-3.5 text-teal-400" />}
         >
@@ -174,7 +174,7 @@ export const InstrumentsPage: React.FC = () => {
         emptyTitle="No Legal Metrology Instruments Registered"
         emptyDescription="No instruments match your current filter settings."
         keyExtractor={(item) => item._id || item.instrumentId}
-        onRowClick={(item) => setSelectedInstrumentId(item._id || item.instrumentId)}
+        onRowClick={(item) => setSelectedInstrumentId(item.instrumentId)}
       />
 
       <Pagination

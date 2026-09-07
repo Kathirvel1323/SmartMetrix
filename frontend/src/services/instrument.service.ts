@@ -1,5 +1,5 @@
 import { apiClient } from './api';
-import type { Instrument } from '../types';
+import type { Instrument, RegisterInstrumentPayload } from '../types';
 
 export const instrumentService = {
   async getInstruments(params?: { search?: string; type?: string; status?: string; page?: number; limit?: number }): Promise<{ instruments: Instrument[]; total: number; page: number; totalPages: number }> {
@@ -20,7 +20,7 @@ export const instrumentService = {
     return response.data?.data?.instrument || response.data?.instrument || response.data;
   },
 
-  async registerInstrument(data: Partial<Instrument>): Promise<Instrument> {
+  async registerInstrument(data: RegisterInstrumentPayload): Promise<Instrument> {
     const response = await apiClient.post('/instruments', data);
     return response.data?.data?.instrument || response.data?.instrument || response.data;
   },

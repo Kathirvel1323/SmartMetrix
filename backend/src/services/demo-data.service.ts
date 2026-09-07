@@ -26,6 +26,21 @@ const CITIES: Record<string, [number, number]> = {
 
 const CATEGORIES = ['WEIGHING_SCALE', 'FUEL_DISPENSER', 'FLOW_METER', 'WATER_METER', 'TAXIMETER'];
 const MANUFACTURERS = ['MetrixTech', 'PrecisionScale', 'AeroFlow', 'ApexGauge', 'TamilMetrix'];
+const CURRENT_GENERATOR_VERSION = 2;
+
+export const createSeededRandom = (seedStr: string): (() => number) => {
+  let hash = 0;
+  for (let i = 0; i < seedStr.length; i++) {
+    hash = (hash << 5) - hash + seedStr.charCodeAt(i);
+    hash |= 0;
+  }
+  return () => {
+    // JavaScript's remainder keeps the dividend sign. Normalize it so this
+    // seeded generator always returns a value in the documented [0, 1) range.
+    hash = ((hash * 9301 + 49297) % 233280 + 233280) % 233280;
+    return hash / 233280;
+  };
+};
 
 const pushUniqueId = (arr: mongoose.Types.ObjectId[] | undefined, id: mongoose.Types.ObjectId) => {
   if (!arr) return;
@@ -37,15 +52,7 @@ const pushUniqueId = (arr: mongoose.Types.ObjectId[] | undefined, id: mongoose.T
 
 export class DemoDataService {
   private pseudoRandom(seedStr: string): () => number {
-    let hash = 0;
-    for (let i = 0; i < seedStr.length; i++) {
-      hash = (hash << 5) - hash + seedStr.charCodeAt(i);
-      hash |= 0;
-    }
-    return () => {
-      hash = (hash * 9301 + 49297) % 233280;
-      return hash / 233280;
-    };
+    return createSeededRandom(seedStr);
   }
 
   async generateDemoData(
@@ -59,7 +66,7 @@ export class DemoDataService {
 
     let batch = await DemoBatch.findOne({ idempotencyKey });
     if (batch) {
-      if (batch.status === 'COMPLETED') {
+      if (batch.status === 'COMPLETED' && batch.generatorVersion === CURRENT_GENERATOR_VERSION) {
         return batch;
       }
     } else {
@@ -70,6 +77,7 @@ export class DemoDataService {
           idempotencyKey,
           seed,
           count,
+          generatorVersion: CURRENT_GENERATOR_VERSION,
           status: 'PENDING',
           recordCounts: {
             users: 0,
@@ -101,6 +109,7 @@ export class DemoDataService {
     }
 
     batch.status = 'IN_PROGRESS';
+    batch.generatorVersion = CURRENT_GENERATOR_VERSION;
     await batch.save();
 
     const batchId = batch.batchId;
@@ -235,7 +244,7 @@ export class DemoDataService {
             assignedInspector: demoInspector._id,
             assignedInspectorId: demoInspector._id.toString(),
             verificationType: 'INITIAL',
-            status: isPass ? 'CERTIFICATE_ISSUED' : 'FAILED',
+            status: isPass ? 'PASSED' : 'FAILED',
             scheduledAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
             submittedAt: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000),
             createdBy: inst.owner,
@@ -245,6 +254,12 @@ export class DemoDataService {
         } else {
           pushUniqueId(batch.createdRecordIds.verificationRequests, ver._id as mongoose.Types.ObjectId);
         }
+
+        // Repair partially generated batches from older releases on retry.
+        ver.status = isPass ? 'PASSED' : 'FAILED';
+        ver.assignedInspector = demoInspector._id as mongoose.Types.ObjectId;
+        ver.updatedBy = adminUser._id as mongoose.Types.ObjectId;
+        await ver.save();
 
         const deviation = isPass ? (random() - 0.5) * 0.2 : (random() > 0.5 ? 2.5 : -2.5);
         const refReading = 100;
@@ -291,16 +306,43 @@ export class DemoDataService {
           pushUniqueId(batch.createdRecordIds.inspections, insp._id as mongoose.Types.ObjectId);
         }
 
+        insp.referenceReading = refReading;
+        insp.actualReading = obsReading;
+        insp.deviation = deviation;
+        insp.deviationPercentage = devPct;
+        insp.calculatedAssessment = isPass ? 'WITHIN_TOLERANCE' : 'OUTSIDE_TOLERANCE';
+        insp.inspectorResult = isPass ? 'PASS' : 'FAIL';
+        insp.status = 'FINALIZED';
+        await insp.save();
+
+        ver.inspection = insp._id as mongoose.Types.ObjectId;
+        await ver.save();
+
         // Certificate if PASS
         if (isPass) {
           const certId = await generateCertificateNumber();
           const publicVerId = `PUB-${uuidv4().substring(0, 8).toUpperCase()}`;
-
+          const issuedAt = new Date(Date.now() - 24 * 24 * 60 * 60 * 1000);
+          const validFrom = new Date(issuedAt);
+          const expiresAt = new Date(Date.now() + 340 * 24 * 60 * 60 * 1000);
+          const serial = inst.serialNumber || '';
+          const maskedSerialNumber = serial.length > 4
+            ? `${serial.substring(0, 2)}****${serial.slice(-2)}`
+            : '****';
           const payloadToSeal = {
-            certificateId: certId,
+            certificateNumber: certId,
+            publicVerificationId: publicVerId,
             instrumentId: inst.instrumentId,
-            inspectionId: inspId,
-            issuedAt: new Date().toISOString()
+            type: inst.type,
+            category: inst.category,
+            manufacturer: inst.manufacturer,
+            model: inst.model,
+            maskedSerialNumber,
+            verificationDate: insp.inspectionDate.toISOString(),
+            issuedAt: issuedAt.toISOString(),
+            validFrom: validFrom.toISOString(),
+            expiresAt: expiresAt.toISOString(),
+            inspectorResult: insp.inspectorResult
           };
           const seal = createIntegritySeal(payloadToSeal);
 
@@ -319,7 +361,7 @@ export class DemoDataService {
                 category: inst.category,
                 manufacturer: inst.manufacturer,
                 model: inst.model,
-                maskedSerialNumber: inst.serialNumber ? `SN-***${inst.serialNumber.slice(-4)}` : 'SN-****',
+                maskedSerialNumber,
                 capacity: inst.capacity
               },
               verificationSnapshot: {
@@ -336,9 +378,9 @@ export class DemoDataService {
                 deviationPercentage: insp.deviationPercentage
               },
               verificationDate: insp.inspectionDate,
-              issuedAt: new Date(Date.now() - 24 * 24 * 60 * 60 * 1000),
-              validFrom: new Date(Date.now() - 24 * 24 * 60 * 60 * 1000),
-              expiresAt: new Date(Date.now() + 340 * 24 * 60 * 60 * 1000),
+              issuedAt,
+              validFrom,
+              expiresAt,
               status: 'VALID',
               policySnapshot: {
                 policyId: 'POL-DEMO-01',
@@ -357,6 +399,20 @@ export class DemoDataService {
             pushUniqueId(batch.createdRecordIds.certificates, certDoc._id as mongoose.Types.ObjectId);
           } else {
             pushUniqueId(batch.createdRecordIds.certificates, existingCert._id as mongoose.Types.ObjectId);
+          }
+
+          const issuedCertificate = existingCert || await Certificate.findOne({ verificationRequest: ver._id });
+          if (issuedCertificate) {
+            ver.status = 'CERTIFICATE_ISSUED';
+            await ver.save();
+            inst.currentCertificate = {
+              certificateNumber: issuedCertificate.certificateNumber,
+              issueDate: issuedCertificate.validFrom,
+              expiryDate: issuedCertificate.expiresAt,
+              verifierId: demoInspector._id as mongoose.Types.ObjectId
+            };
+            inst.status = 'ACTIVE';
+            await inst.save();
           }
         } else {
           // Failure -> Create Notice for ~50% of fails

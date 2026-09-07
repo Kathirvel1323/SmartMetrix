@@ -5,7 +5,7 @@ import { instrumentService } from '../../services/instrument.service';
 import type { Instrument } from '../../types';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { useAuth } from '../../context/AuthContext';
-import { Brain, Camera, TrendingUp, Cpu, MapPin, Sliders, Upload, Plus } from 'lucide-react';
+import { AlertCircle, Brain, Camera, TrendingUp, Cpu, MapPin, Sliders, Upload, Plus } from 'lucide-react';
 
 export const DecisionSupportPage: React.FC = () => {
   const { user } = useAuth();
@@ -15,6 +15,10 @@ export const DecisionSupportPage: React.FC = () => {
   const [instruments, setInstruments] = useState<Instrument[]>([]);
   const [selectedInstrumentId, setSelectedInstrumentId] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
+  const [actionError, setActionError] = useState('');
+
+  const getErrorMessage = (error: any, fallback: string) =>
+    error.response?.data?.message || error.message || fallback;
 
   // Tab 1: Photo Assist state
   const [photoFile, setPhotoFile] = useState<File | null>(null);
@@ -61,6 +65,7 @@ export const DecisionSupportPage: React.FC = () => {
   const handlePhotoAssist = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!photoFile || !selectedInstrumentId) return;
+    setActionError('');
     setIsLoading(true);
     try {
       const formData = new FormData();
@@ -69,7 +74,7 @@ export const DecisionSupportPage: React.FC = () => {
       const res = await phase7Service.analyzePhoto(formData);
       setPhotoResult(res);
     } catch (err: any) {
-      alert(err.message || 'Photo assist analysis failed');
+      setActionError(getErrorMessage(err, 'Photo assist analysis failed'));
     } finally {
       setIsLoading(false);
     }
@@ -78,12 +83,13 @@ export const DecisionSupportPage: React.FC = () => {
   // Tab 2 Handler: Predictive Analysis
   const handlePredictive = async () => {
     if (!selectedInstrumentId) return;
+    setActionError('');
     setIsLoading(true);
     try {
       const res = await phase7Service.analyzePredictive(selectedInstrumentId);
       setPredictiveResult(res);
     } catch (err: any) {
-      alert(err.message || 'Predictive analysis failed');
+      setActionError(getErrorMessage(err, 'Predictive analysis failed'));
     } finally {
       setIsLoading(false);
     }
@@ -92,12 +98,13 @@ export const DecisionSupportPage: React.FC = () => {
   // Tab 3 Handlers: Planning Twin & Burden Optimization
   const handleRunPlanningTwin = async () => {
     if (!selectedInstrumentId) return;
+    setActionError('');
     setIsLoading(true);
     try {
       const res = await phase7Service.getPlanningTwin(selectedInstrumentId);
       setTwinResult(res);
     } catch (err: any) {
-      alert(err.message || 'Planning twin fetch failed');
+      setActionError(getErrorMessage(err, 'Planning twin fetch failed'));
     } finally {
       setIsLoading(false);
     }
@@ -105,12 +112,13 @@ export const DecisionSupportPage: React.FC = () => {
 
   const handleOptimizeBurden = async () => {
     if (!selectedInstrumentId) return;
+    setActionError('');
     setIsLoading(true);
     try {
       const res = await phase7Service.optimizeBurden(selectedInstrumentId);
       setBurdenResult(res);
     } catch (err: any) {
-      alert(err.message || 'Burden optimization failed');
+      setActionError(getErrorMessage(err, 'Burden optimization failed'));
     } finally {
       setIsLoading(false);
     }
@@ -119,12 +127,13 @@ export const DecisionSupportPage: React.FC = () => {
   // Tab 4 Handler: Geo Schedule Recommendation
   const handleGeoSchedule = async () => {
     if (!selectedInstrumentId) return;
+    setActionError('');
     setIsLoading(true);
     try {
       const res = await phase7Service.recommendGeoSchedule(selectedInstrumentId);
       setGeoResult(res);
     } catch (err: any) {
-      alert(err.message || 'Geo scheduling failed');
+      setActionError(getErrorMessage(err, 'Geo scheduling failed'));
     } finally {
       setIsLoading(false);
     }
@@ -133,23 +142,25 @@ export const DecisionSupportPage: React.FC = () => {
   // Tab 5 Handler: Create Verification Method Rule
   const handleCreateRule = async (e: React.FormEvent) => {
     e.preventDefault();
+    setActionError('');
     try {
       await phase7Service.createVerificationRule(newRule);
       setShowRuleModal(false);
       const updated = await phase7Service.listVerificationRules();
       setRules(updated || []);
     } catch (err: any) {
-      alert(err.message || 'Failed to create verification method rule');
+      setActionError(getErrorMessage(err, 'Failed to create verification method rule'));
     }
   };
 
   const handleDeactivateRule = async (ruleId: string) => {
+    setActionError('');
     try {
       await phase7Service.deactivateVerificationRule(ruleId);
       const updated = await phase7Service.listVerificationRules();
       setRules(updated || []);
     } catch (err: any) {
-      alert(err.message || 'Failed to deactivate rule');
+      setActionError(getErrorMessage(err, 'Failed to deactivate rule'));
     }
   };
 
@@ -167,6 +178,13 @@ export const DecisionSupportPage: React.FC = () => {
           <span className="font-bold">Statutory Notice:</span> Decision support calculations do not alter official verification certificates, statutory intervals, or legal Pass/Fail results. Final statutory authority rests exclusively with authorized Inspectors/LMOs.
         </p>
       </div>
+
+      {actionError && (
+        <div className="p-4 rounded-2xl bg-red-950/50 border border-red-700/50 flex items-center gap-3 text-xs text-red-200" role="alert">
+          <AlertCircle className="w-5 h-5 shrink-0" />
+          <span>{actionError}</span>
+        </div>
+      )}
 
       {/* Navigation Tabs */}
       <div className="flex border-b border-slate-800 space-x-2 overflow-x-auto">
@@ -268,11 +286,11 @@ export const DecisionSupportPage: React.FC = () => {
                   <div className="grid grid-cols-2 gap-2 text-[11px]">
                     <div>
                       <span className="text-slate-400">Resolution:</span>{' '}
-                      <span className="font-mono text-slate-200">{photoResult.qualityMetrics?.resolutionWidth}x{photoResult.qualityMetrics?.resolutionHeight}</span>
+                      <span className="font-mono text-slate-200">{photoResult.qualityMetrics?.resolution?.width}x{photoResult.qualityMetrics?.resolution?.height}</span>
                     </div>
                     <div>
                       <span className="text-slate-400">Blur Score:</span>{' '}
-                      <span className="font-mono text-slate-200">{photoResult.qualityMetrics?.blurScore}</span>
+                      <span className="font-mono text-slate-200">{photoResult.qualityMetrics?.sharpnessScore}</span>
                     </div>
                     <div>
                       <span className="text-slate-400">Brightness:</span>{' '}
@@ -291,15 +309,15 @@ export const DecisionSupportPage: React.FC = () => {
                   <div className="space-y-1 text-[11px]">
                     <div className="flex justify-between">
                       <span className="text-slate-400">Serial Number Extraction:</span>
-                      <span className="font-mono text-slate-300 font-bold">{photoResult.semanticFields?.serialNumberText || 'NOT_ASSESSED'}</span>
+                      <span className="font-mono text-slate-300 font-bold">{photoResult.semanticFields?.serial_number_match || 'NOT_ASSESSED'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-slate-400">Seal Verification:</span>
-                      <span className="font-mono text-slate-300 font-bold">{photoResult.semanticFields?.sealText || 'NOT_ASSESSED'}</span>
+                      <span className="font-mono text-slate-300 font-bold">{photoResult.semanticFields?.seal_intact || 'NOT_ASSESSED'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-slate-400">Readout Match:</span>
-                      <span className="font-mono text-slate-300 font-bold">{photoResult.semanticFields?.readoutText || 'NOT_ASSESSED'}</span>
+                      <span className="font-mono text-slate-300 font-bold">{photoResult.semanticFields?.model_plate_legible || 'NOT_ASSESSED'}</span>
                     </div>
                   </div>
                 </div>

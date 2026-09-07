@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { certificateService } from '../../services/certificate.service';
+import { verificationService } from '../../services/verification.service';
 import type { CertificatePolicy } from '../../services/certificate.service';
-import type { Certificate } from '../../types';
+import type { Certificate, VerificationRequest } from '../../types';
 import { PageHeader } from '../../components/ui/PageHeader';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
@@ -9,7 +10,7 @@ import { Button } from '../../components/ui/Button';
 import { LoadingState } from '../../components/ui/LoadingState';
 import { ErrorState } from '../../components/ui/ErrorState';
 import { useAuth } from '../../context/AuthContext';
-import { ShieldCheck, RefreshCw, ExternalLink, Lock, Plus, Ban, Sliders } from 'lucide-react';
+import { ShieldCheck, RefreshCw, ExternalLink, Lock, Plus, Ban, Sliders, FileCheck2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 type CertificateBadgeVariant = 'pass' | 'fail' | 'pending' | 'info';
@@ -31,6 +32,9 @@ export const CertificatesPage: React.FC = () => {
 
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [policies, setPolicies] = useState<CertificatePolicy[]>([]);
+  const [readyRequests, setReadyRequests] = useState<VerificationRequest[]>([]);
+  const [issuingRequestId, setIssuingRequestId] = useState<string | null>(null);
+  const [actionMessage, setActionMessage] = useState('');
 
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -53,8 +57,14 @@ export const CertificatesPage: React.FC = () => {
     setIsLoading(true);
     setError('');
     try {
-      const certs = await certificateService.listCertificates();
+      const [certs, ready] = await Promise.all([
+        certificateService.listCertificates(),
+        userRole === 'ADMIN'
+          ? verificationService.getVerificationRequests({ status: 'PASSED', limit: 100 })
+          : Promise.resolve({ requests: [] }),
+      ]);
       setCertificates(certs);
+      setReadyRequests(ready.requests);
       if (userRole === 'ADMIN' || userRole === 'INSPECTOR') {
         const pols = await certificateService.listPolicies();
         setPolicies(pols);
@@ -74,13 +84,14 @@ export const CertificatesPage: React.FC = () => {
     e.preventDefault();
     if (!revokeCertNumber || !revokeReason.trim()) return;
     setIsRevoking(true);
+    setActionMessage('');
     try {
       await certificateService.revokeCertificate(revokeCertNumber, revokeReason.trim());
       setRevokeCertNumber(null);
       setRevokeReason('');
       void loadData();
     } catch (err: any) {
-      alert(err.message || 'Failed to revoke certificate');
+      setActionMessage(err.response?.data?.message || err.message || 'Failed to revoke certificate');
     } finally {
       setIsRevoking(false);
     }
@@ -88,12 +99,27 @@ export const CertificatesPage: React.FC = () => {
 
   const handleCreatePolicy = async (e: React.FormEvent) => {
     e.preventDefault();
+    setActionMessage('');
     try {
       await certificateService.createPolicy(newPolicy);
       setShowPolicyModal(false);
       void loadData();
     } catch (err: any) {
-      alert(err.message || 'Failed to create policy');
+      setActionMessage(err.response?.data?.message || err.message || 'Failed to create policy');
+    }
+  };
+
+  const handleIssueCertificate = async (requestId: string) => {
+    setIssuingRequestId(requestId);
+    setActionMessage('');
+    try {
+      const certificate = await certificateService.issueCertificate({ verificationRequestId: requestId });
+      setActionMessage(`Certificate ${certificate.certificateNumber} issued successfully.`);
+      await loadData();
+    } catch (err: any) {
+      setActionMessage(err.response?.data?.message || err.message || 'Failed to issue certificate.');
+    } finally {
+      setIssuingRequestId(null);
     }
   };
 
@@ -111,6 +137,12 @@ export const CertificatesPage: React.FC = () => {
           </Button>
         }
       />
+
+      {actionMessage && (
+        <div className="p-3 rounded-xl border border-teal-500/40 bg-teal-950/60 text-xs font-medium text-teal-200">
+          {actionMessage}
+        </div>
+      )}
 
       {/* Tabs */}
       {(user?.role === 'ADMIN' || user?.role === 'INSPECTOR') && (
@@ -136,13 +168,42 @@ export const CertificatesPage: React.FC = () => {
 
       {activeTab === 'certs' && (
         <>
+          {userRole === 'ADMIN' && readyRequests.length > 0 && (
+            <Card className="border-emerald-500/30">
+              <div className="flex items-center gap-2 mb-4">
+                <FileCheck2 className="w-5 h-5 text-emerald-400" />
+                <div>
+                  <h3 className="text-sm font-bold text-slate-100">Passed Inspections Ready for Certificate</h3>
+                  <p className="text-xs text-slate-400">Issue the statutory certificate after reviewing the finalized PASS record.</p>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {readyRequests.map((request) => (
+                  <div key={request.requestId} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-slate-800 bg-slate-950/60 p-3">
+                    <div className="text-xs">
+                      <p className="font-mono font-bold text-teal-300">{request.requestId}</p>
+                      <p className="text-slate-300">{request.instrument?.instrumentId} — {request.instrument?.manufacturer} {request.instrument?.model}</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={() => void handleIssueCertificate(request.requestId)}
+                      isLoading={issuingRequestId === request.requestId}
+                      icon={<ShieldCheck className="w-3.5 h-3.5" />}
+                    >
+                      Issue Certificate
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
           {certificates.length === 0 ? (
             <Card>
               <div className="py-14 text-center text-slate-400 space-y-2">
                 <ShieldCheck className="w-10 h-10 mx-auto text-teal-600 opacity-40" />
                 <p className="text-sm font-medium">No digital certificates issued yet.</p>
                 <p className="text-xs text-slate-500">
-                  Certificates are issued automatically upon a successful PASS inspection result.
+                  PASS inspections appear above for ADMIN review and certificate issuance.
                 </p>
               </div>
             </Card>
